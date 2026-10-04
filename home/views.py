@@ -5,6 +5,7 @@ import string
 
 from decimal import Decimal, getcontext
 from datetime import date, datetime, timedelta
+from dateutil.relativedelta import relativedelta
 
 from django.conf import settings
 from django.shortcuts import render, redirect, get_object_or_404
@@ -37,12 +38,129 @@ from webauthn.helpers.exceptions import (
 )
 
 # --- UPDATED IMPORTS FOR MODELS AND FORMS ---
-from .models import CustomUser, Transaction, Income, Budget, Goal, Profile, Category
+
+from .models import (
+    CustomUser,
+    Transaction,
+    Income,
+    Budget,
+    Goal,
+    Profile,
+    Category,
+    RegisteredCredential,
+)
 from .forms import (
     ResetPasswordForm, ResetCodeForm, UserRegistrationForm, UserProfileEditForm,
     CategoryForm, TransactionForm, IncomeForm, BudgetForm, GoalForm
 )
 # --- END UPDATED IMPORTS ---
+def get_financial_year_dates(start_year):
+    """
+    Return the start and end dates for an Indian financial year.
+    Example: 2026 -> 2026-04-01 to 2027-03-31
+    """
+    start_year = int(start_year)
+
+    fy_start = date(start_year, 4, 1)
+    fy_end = date(start_year + 1, 3, 31)
+
+    return fy_start, fy_end
+
+
+def calculate_tax(
+    gross_income,
+    financial_year,
+    is_salaried=False,
+    opted_old_regime=False,
+):
+    """
+    Calculate estimated income tax and return the values
+    required by calculate_taxation().
+    """
+
+    gross_income = Decimal(str(gross_income))
+
+    if gross_income < Decimal("0"):
+        gross_income = Decimal("0")
+
+    # Standard deduction
+    if is_salaried:
+        if opted_old_regime:
+            standard_deduction = Decimal("50000.00")
+        else:
+            standard_deduction = Decimal("75000.00")
+    else:
+        standard_deduction = Decimal("0.00")
+
+    taxable_income = max(
+        Decimal("0.00"),
+        gross_income - standard_deduction,
+    )
+
+    # New tax regime
+    if not opted_old_regime:
+        slabs = [
+            (Decimal("400000"), Decimal("0.00")),
+            (Decimal("400000"), Decimal("0.05")),
+            (Decimal("400000"), Decimal("0.10")),
+            (Decimal("400000"), Decimal("0.15")),
+            (Decimal("400000"), Decimal("0.20")),
+            (None, Decimal("0.30")),
+        ]
+
+    # Old tax regime
+    else:
+        slabs = [
+            (Decimal("250000"), Decimal("0.00")),
+            (Decimal("250000"), Decimal("0.05")),
+            (Decimal("500000"), Decimal("0.20")),
+            (None, Decimal("0.30")),
+        ]
+
+    remaining_income = taxable_income
+    total_tax = Decimal("0.00")
+
+    for slab_limit, rate in slabs:
+        if remaining_income <= Decimal("0.00"):
+            break
+
+        if slab_limit is None:
+            slab_income = remaining_income
+        else:
+            slab_income = min(
+                remaining_income,
+                slab_limit,
+            )
+
+        total_tax += slab_income * rate
+        remaining_income -= slab_income
+
+    # 4% Health and Education Cess
+    total_tax += total_tax * Decimal("0.04")
+
+    # New-regime rebate
+    if (
+        not opted_old_regime
+        and taxable_income <= Decimal("1200000")
+    ):
+        total_tax = Decimal("0.00")
+
+    total_tax = total_tax.quantize(Decimal("0.01"))
+
+    if taxable_income > Decimal("0.00"):
+        tax_percentage = (
+            total_tax / taxable_income
+        ) * Decimal("100")
+    else:
+        tax_percentage = Decimal("0.00")
+
+    return {
+        "taxable_income_after_deduction": taxable_income,
+        "tax_percentage": tax_percentage.quantize(
+            Decimal("0.01")
+        ),
+        "total_tax_amount": total_tax,
+    }
 
 User = CustomUser
 getcontext().prec = 10

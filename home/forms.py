@@ -110,7 +110,7 @@ class CategoryForm(forms.ModelForm):
 class TransactionForm(forms.ModelForm):
     class Meta:
         model = Transaction
-        fields = ['description', 'amount', 'date']
+        fields = ['description', 'amount', 'category', 'date']
         widgets = {
             'date': forms.DateInput(attrs={'type': 'date'}),
         }
@@ -135,7 +135,7 @@ class TransactionForm(forms.ModelForm):
 class IncomeForm(forms.ModelForm):
     class Meta:
         model = Income
-        fields = ['description', 'amount', 'date']
+        fields = ['description', 'amount', 'category', 'date']
         widgets = {
             'date': forms.DateInput(attrs={'type': 'date'}),
         }

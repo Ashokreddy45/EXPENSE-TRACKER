@@ -17,6 +17,11 @@ urlpatterns = [
     # Profile
     path('profile/', views.view_profile, name='view_profile'),
     path('profile/edit/', views.edit_profile_view, name='edit_profile'),
+    # Category Management
+    path('categories/', views.list_categories_view, name='list_categories'),
+    path('categories/add/', views.add_category_view, name='add_category'),
+    path('categories/edit/<int:category_id>/', views.edit_category_view, name='edit_category'),
+    path('categories/delete/<int:category_id>/', views.delete_category_view, name='delete_category'),
 
     # Transactions
     path('add_expense/', views.add_expense_view, name='add_expense'),
