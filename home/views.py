@@ -541,7 +541,7 @@ def home_view(request):
 
     # Time period filtering for relevant models (unchanged core logic)
     if time_period == 'weekly':
-        start_date = today - timedelta(days=7)
+        start_date = today - timedelta(days=6)
     elif time_period == 'yearly':
         start_date = today.replace(month=1, day=1)
     else: # monthly
@@ -550,8 +550,10 @@ def home_view(request):
     if selected_type in ['income', 'expense']:
         queryset = queryset.filter(date__gte=start_date, date__lte=today)
     elif selected_type == 'goal':
-        # Goals filter by deadline. If you want to show goals set within a period, change this.
-        queryset = queryset.filter(deadline__gte=start_date) # No upper bound for 'to-do' goals
+        queryset = queryset.filter(
+            deadline__gte=start_date,
+            deadline__lte=today,
+        )
 
     # Field to aggregate based on selected_type (unchanged core logic)
     if selected_type == 'budget':
@@ -604,31 +606,92 @@ def home_view(request):
     elif selected_type == 'goal':
         if chart_type == 'category':
             qs_chart = (
-                queryset
-                .values('category__name') # CHANGES: Use category__name for grouping
-                .annotate(total=Sum('target_amount'))
-                .order_by('category__name') # CHANGES: Order by category__name
-            )
-            chart_labels = [entry['category__name'] if entry['category__name'] else 'Uncategorized' for entry in qs_chart]
-            chart_data = [float(entry['total']) for entry in qs_chart]
-        elif chart_type == 'overtime': # Optional: Goals over time (e.g., current amount vs target by deadline)
-            # This would require more complex logic to show progress
-            pass
+            queryset
+            .values('category__name')
+            .annotate(total=Sum('target_amount'))
+            .order_by('category__name')
+        )
+        chart_labels = [
+            entry['category__name']
+            if entry['category__name']
+            else 'Uncategorized'
+            for entry in qs_chart
+        ]
+        chart_data = [
+            float(entry['total'])
+            for entry in qs_chart
+        ]
+
+    elif selected_type == 'goal' and chart_type == 'overtime':
+        if time_period == 'weekly':
+            aggregation_func = TruncWeek('deadline')
+            date_format_str = "%b %d, %Y"
+        else:
+            aggregation_func = TruncMonth('deadline')
+            date_format_str = "%b %Y"
+
+        qs_chart = (
+            queryset
+            .annotate(period=aggregation_func)
+            .values('period')
+            .annotate(total=Sum('target_amount'))
+            .order_by('period')
+        )
+
+        chart_labels = [
+            entry['period'].strftime(date_format_str)
+            for entry in qs_chart
+        ]
+
+        chart_data = [
+            float(entry['total'])
+            for entry in qs_chart
+        ]
 
     elif selected_type == 'budget':
-        if chart_type == 'category':
-            qs_chart = (
-                queryset # Use the already filtered queryset for budget
-                .values('category__name') # CHANGES: Use category__name for grouping
-                .annotate(total=Sum('limit'))
-                .order_by('category__name') # CHANGES: Order by category__name
-            )
-            chart_labels = [entry['category__name'] if entry['category__name'] else 'Uncategorized' for entry in qs_chart]
-            chart_data = [float(entry['total']) for entry in qs_chart]
-        elif chart_type == 'overtime': # Optional: Budgets over time (e.g., monthly budget limits)
-            # This would require different Truncation for Budget models
-            pass
+     if chart_type == 'category':
+        qs_chart = (
+            queryset
+            .values('category__name')
+            .annotate(total=Sum('limit'))
+            .order_by('category__name')
+        )
+        chart_labels = [
+            entry['category__name']
+            if entry['category__name']
+            else 'Uncategorized'
+            for entry in qs_chart
+        ]
+        chart_data = [
+            float(entry['total'])
+            for entry in qs_chart
+        ]
 
+    elif chart_type == 'overtime':
+        if time_period == 'weekly':
+            aggregation_func = TruncWeek('date')
+            date_format_str = "%b %d, %Y"
+        else:
+            aggregation_func = TruncMonth('date')
+            date_format_str = "%b %Y"
+
+        qs_chart = (
+            queryset
+            .annotate(period=aggregation_func)
+            .values('period')
+            .annotate(total=Sum('limit'))
+            .order_by('period')
+        )
+
+        chart_labels = [
+            entry['period'].strftime(date_format_str)
+            for entry in qs_chart
+        ]
+
+        chart_data = [
+            float(entry['total'])
+            for entry in qs_chart
+        ]
 
     # Overall financial summaries (unchanged core logic)
     total_income_overall = Income.objects.filter(user=request.user).aggregate(Sum('amount'))['amount__sum'] or Decimal('0.00')
@@ -641,7 +704,14 @@ def home_view(request):
         date__month=today.month
     ).aggregate(Sum('amount'))['amount__sum'] or Decimal('0.00')
 
-    total_budget_limit = Budget.objects.filter(user=request.user).aggregate(Sum('limit'))['limit__sum'] or Decimal('0.00')
+    total_budget_limit = Budget.objects.filter(
+        user=request.user,
+        date__year=today.year,
+        date__month=today.month,
+    ).aggregate(
+        Sum('limit')
+    )['limit__sum'] or Decimal('0.00')
+
     remaining_budget = total_budget_limit - monthly_spending
 
     # --- FIX FOR FieldError: Cannot resolve keyword 'type' into field ---

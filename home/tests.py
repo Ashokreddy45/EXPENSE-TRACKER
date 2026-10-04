@@ -1,5 +1,8 @@
 from decimal import Decimal
 import json
+
+from dateutil.relativedelta import relativedelta
+
 from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
@@ -270,6 +273,93 @@ class ViewPageTests(TestCase):
         response = self.client.get(reverse("home"))
         self.assertEqual(response.status_code, 200)
 
+    def test_remaining_budget_uses_current_month_budget(self):
+        today = timezone.now().date()
+
+        category = Category.objects.create(
+            user=self.user,
+            name="Food",
+            type="expense",
+        )
+
+        Budget.objects.create(
+            user=self.user,
+            category=category,
+            limit=Decimal("100000.00"),
+            date=today - relativedelta(months=1),
+        )
+
+        Budget.objects.create(
+            user=self.user,
+            category=category,
+            limit=Decimal("50000.00"),
+            date=today,
+        )
+
+        Transaction.objects.create(
+            user=self.user,
+            description="Groceries",
+            amount=Decimal("10000.00"),
+            date=today,
+            category=category,
+        )
+
+        response = self.client.get(reverse("home"))
+
+        self.assertEqual(response.status_code, 200)
+
+        self.assertEqual(
+            response.context["remaining_budget"],
+            Decimal("40000.00"),
+        )
+
+    def test_budget_overtime_chart_data(self):
+        today = timezone.now().date()
+
+        category = Category.objects.create(
+            user=self.user,
+            name="Food",
+            type="expense",
+        )
+
+        Budget.objects.create(
+            user=self.user,
+            category=category,
+            limit=Decimal("50000.00"),
+            date=today,
+        )
+
+        response = self.client.get(
+            reverse("home"),
+            {
+                "data_type": "budget",
+                "time_period": "monthly",
+                "chart_type": "overtime",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+
+        self.assertIn(
+            "chart_labels_json",
+            response.context,
+        )
+
+        self.assertIn(
+            "chart_data_json",
+            response.context,
+        )
+
+        self.assertEqual(
+            response.context["chart_type"],
+            "overtime",
+        )
+
+        self.assertEqual(
+            response.context["selected_type"],
+            "budget",
+        )
+    
     def test_profile_page_loads(self):
         response = self.client.get(reverse("view_profile"))
         self.assertEqual(response.status_code, 200)
