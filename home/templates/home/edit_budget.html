@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+{% load static %} {% include 'home/navbar.html' %}
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Edit Budget</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 20px;
+        background-color: #f9f9f9;
+      }
+
+      h1,
+      h2 {
+        margin-bottom: 20px;
+        color: #333;
+      }
+
+      .container {
+        display: flex;
+        justify-content: space-between;
+        flex-wrap: nowrap;
+        gap: 30px;
+      }
+
+      .form-section {
+        width: 100%;
+        background-color: #fff;
+        padding: 25px;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      }
+
+      form label {
+        display: block;
+        margin-top: 15px;
+        font-weight: bold;
+        color: #444;
+      }
+
+      form input[type="text"],
+      form input[type="number"],
+      form input[type="date"] {
+        width: 100%;
+        padding: 10px;
+        margin-top: 5px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+      }
+
+      .category-slider {
+        display: flex;
+        overflow-x: auto;
+        margin-top: 10px;
+        gap: 10px;
+        padding-bottom: 10px;
+      }
+
+      .category-button {
+        flex: 0 0 auto;
+        padding: 10px 15px;
+        background-color: #e0e0e0;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: background-color 0.2s;
+      }
+
+      .category-button:hover {
+        background-color: #ccc;
+      }
+
+      .category-button.selected {
+        background-color: #007bff;
+        color: white;
+      }
+
+      #selected-category {
+        margin-top: 10px;
+        font-weight: bold;
+        color: #007bff;
+      }
+
+      button[type="submit"] {
+        margin-top: 20px;
+        padding: 10px 20px;
+        background-color: #4caf50;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+      }
+
+      .delete-form {
+        margin-top: 20px;
+      }
+
+      .delete-btn {
+        background-color: #f44336;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="form-section">
+        <h1>Edit Budget</h1>
+        <form method="POST">
+          {% csrf_token %}
+          <label for="category">Category:</label>
+          <div class="category-slider">
+            {% for cat in predefined_categories %}
+            <button
+              type="button"
+              class="category-button {% if budget.category == cat %}selected{% endif %}"
+              onclick="selectCategory('{{ cat }}')"
+            >
+              {{ cat }}
+            </button>
+            {% endfor %}
+          </div>
+          <input
+            type="hidden"
+            id="category"
+            name="category"
+            value="{{ budget.category }}"
+            required
+          />
+          <p id="selected-category">Selected: {{ budget.category }}</p>
+
+          <label for="limit">Limit:</label>
+          <input
+            type="number"
+            id="limit"
+            name="limit"
+            value="{{ budget.limit }}"
+            required
+          />
+
+          <label for="date">Date:</label>
+          <input
+            type="date"
+            id="date"
+            name="date"
+            value="{{ budget.date|date:'Y-m-d' }}"
+            required
+          />
+
+          <button type="submit">Update Budget</button>
+        </form>
+
+        <form
+          method="POST"
+          action="{% url 'delete_budget' budget.id %}"
+          class="delete-form"
+        >
+          {% csrf_token %}
+          <button type="submit" class="delete-btn">Delete Budget</button>
+        </form>
+      </div>
+    </div>
+
+    <script>
+      function selectCategory(category) {
+        document.getElementById("category").value = category;
+        document.getElementById("selected-category").innerText =
+          "Selected: " + category;
+
+        let buttons = document.querySelectorAll(".category-button");
+        buttons.forEach((btn) => btn.classList.remove("selected"));
+        let selectedBtn = Array.from(buttons).find(
+          (btn) => btn.innerText === category
+        );
+        if (selectedBtn) selectedBtn.classList.add("selected");
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,433 @@
+{% extends 'base.html' %} {# This line is the only way for Django to link to base.html #}
+{% load static %} {# This is still needed for any static files specific to this page #}
+{# IMPORTANT: Removed {% load django.utils.html %} and all {% json_script %} tags #}
+
+{% block title %}Home - Personal Finance Dashboard{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-900 text-white">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+  <h1 class="text-4xl lg:text-5xl font-extrabold text-white drop-shadow-2xl text-center mb-4 leading-tight fade-in-section">
+    Welcome, <span class="text-sky-400">{{ request.user.username }}!</span>
+  </h1>
+  <p class="text-center text-gray-300 text-xl font-medium mb-8 max-w-2xl mx-auto fade-in-section" style="transition-delay:0.13s">
+    Master your money, effortlessly.
+  </p>
+
+  <section class="mb-16 fade-in-section" style="transition-delay:0.21s">
+    <h2 class="text-3xl font-bold text-white border-b-4 border-emerald-400 pb-3 mb-10 text-center drop-shadow">Dashboard Summary</h2>
+    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6 items-stretch">
+      <div class="bg-gray-800 bg-opacity-70 backdrop-filter backdrop-blur-lg rounded-2xl shadow-xl p-6 text-center border border-gray-700 hover:scale-105 transition-transform duration-300">
+        <h3 class="text-gray-200 font-semibold mb-2 text-lg">Total Balance</h3>
+        <p class="text-3xl font-extrabold text-sky-400 countup" data-count="{{ total_balance|floatformat:2 }}">$0.00</p>
+      </div>
+      <div class="bg-gray-800 bg-opacity-70 backdrop-filter backdrop-blur-lg rounded-2xl shadow-xl p-6 text-center border border-gray-700 hover:scale-105 transition-transform duration-300">
+        <h3 class="text-gray-200 font-semibold mb-2 text-lg">Total Income</h3>
+        <p class="text-3xl font-extrabold text-emerald-400 countup" data-count="{{ total_income|floatformat:2 }}">$0.00</p>
+      </div>
+      <div class="bg-gray-800 bg-opacity-70 backdrop-filter backdrop-blur-lg rounded-2xl shadow-xl p-6 text-center border border-gray-700 hover:scale-105 transition-transform duration-300">
+        <h3 class="text-gray-200 font-semibold mb-2 text-lg">Total Expenses</h3>
+        <p class="text-3xl font-extrabold text-rose-400 countup" data-count="{{ total_expenses|floatformat:2 }}">$0.00</p>
+      </div>
+      <div class="bg-gray-800 bg-opacity-70 backdrop-filter backdrop-blur-lg rounded-2xl shadow-xl p-6 text-center border border-gray-700 hover:scale-105 transition-transform duration-300">
+        <h3 class="text-gray-200 font-semibold mb-2 text-lg">This Month’s Spending</h3>
+        <p class="text-3xl font-extrabold text-rose-400 countup" data-count="{{ monthly_spending|floatformat:2 }}">$0.00</p>
+      </div>
+      <div class="bg-gray-800 bg-opacity-70 backdrop-filter backdrop-blur-lg rounded-2xl shadow-xl p-6 text-center border border-gray-700 hover:scale-105 transition-transform duration-300">
+        <h3 class="text-gray-200 font-semibold mb-2 text-lg">Remaining Budget</h3>
+        <p class="text-3xl font-extrabold text-amber-400 countup" data-count="{{ remaining_budget|floatformat:2 }}">$0.00</p>
+      </div>
+      <div class="bg-gray-800 bg-opacity-70 backdrop-filter backdrop-blur-lg rounded-2xl shadow-xl p-6 text-center border border-gray-700 hover:scale-105 transition-transform duration-300">
+        <h3 class="text-gray-200 font-semibold mb-2 text-lg">Upcoming Bills/Payments</h3>
+        <p class="text-3xl font-extrabold text-fuchsia-400 countup" data-count="{{ upcoming_bills|floatformat:2 }}">$0.00</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="mb-16 fade-in-section" style="transition-delay:0.29s">
+    <h2 class="text-3xl font-bold text-white border-b-4 border-emerald-400 pb-3 mb-10 text-center drop-shadow">Financial Overview</h2>
+    <div class="bg-gray-800 bg-opacity-70 backdrop-filter backdrop-blur-lg rounded-2xl shadow-xl p-6 mb-12 flex flex-col items-center border border-gray-700">
+      <form id="filterForm" method="get" class="flex flex-wrap justify-center gap-6 w-full fade-in-section" style="transition-delay:0.33s">
+        <label class="flex flex-col font-medium text-gray-200">
+          Data Type:
+          <select name="data_type" onchange="this.form.submit()" class="bg-gray-900 bg-opacity-60 border border-sky-600 rounded-lg px-4 py-2 mt-2 focus:ring-2 focus:ring-sky-400 transition text-gray-100">
+            <option value="income" {% if selected_type == 'income' %}selected{% endif %}>Income</option>
+            <option value="expense" {% if selected_type == 'expense' %}selected{% endif %}>Expense</option>
+            <option value="budget" {% if selected_type == 'budget' %}selected{% endif %}>Budget</option>
+            <option value="goal" {% if selected_type == 'goal' %}selected{% endif %}>Goal</option>
+          </select>
+        </label>
+        <label class="flex flex-col font-medium text-gray-200">
+          Time Period:
+          <select name="time_period" onchange="this.form.submit()" class="bg-gray-900 bg-opacity-60 border border-sky-600 rounded-lg px-4 py-2 mt-2 focus:ring-2 focus:ring-sky-400 transition text-gray-100">
+            <option value="weekly" {% if time_period == 'weekly' %}selected{% endif %}>This Week</option>
+            <option value="monthly" {% if time_period == 'monthly' %}selected{% endif %}>This Month</option>
+            <option value="yearly" {% if time_period == 'yearly' %}selected{% endif %}>This Year</option>
+          </select>
+        </label>
+        <label class="flex flex-col font-medium text-gray-200">
+          Chart Type:
+          <select name="chart_type" onchange="this.form.submit()" class="bg-gray-900 bg-opacity-60 border border-sky-600 rounded-lg px-4 py-2 mt-2 focus:ring-2 focus:ring-sky-400 transition text-gray-100">
+            <option value="overtime" {% if chart_type == 'overtime' %}selected{% endif %}>Over Time</option>
+            <option value="category" {% if chart_type == 'category' %}selected{% endif %}>By Category</option>
+          </select>
+        </label>
+      </form>
+    </div>
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-stretch">
+
+  <!-- Data Summary -->
+  <div class="bg-gray-800 bg-opacity-70 backdrop-filter backdrop-blur-lg 
+              rounded-2xl shadow-xl p-6 border border-gray-700 
+              lg:col-span-1 h-full">
+
+    <h4 class="text-xl font-bold border-b-2 border-gray-600 pb-3 mb-4 text-sky-400">
+      Data Summary (<span class="text-sky-300">{{ selected_type|title }}</span>)
+    </h4>
+
+    <div class="space-y-4 text-lg text-gray-200">
+      <div class="flex justify-between">
+        <span>Total:</span>
+        <span class="font-bold text-white">${{ total|floatformat:2 }}</span>
+      </div>
+      <div class="flex justify-between">
+        <span>Average:</span>
+        <span class="font-bold text-white">${{ avg|floatformat:2 }}</span>
+      </div>
+      <div class="flex justify-between">
+        <span>Max:</span>
+        <span class="font-bold text-white">${{ mx|floatformat:2 }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chart -->
+  <div class="bg-gray-800 bg-opacity-70 backdrop-filter backdrop-blur-lg 
+              rounded-2xl shadow-xl p-6 border border-gray-700 
+              lg:col-span-2 h-[470px]">
+
+    <canvas id="overviewChart"></canvas>
+  </div>
+
+</div>
+  </section>
+
+  <section class="mb-16 fade-in-section" style="transition-delay:0.37s">
+    <h2 class="text-3xl font-bold text-white border-b-4 border-emerald-400 pb-3 mb-10 text-center drop-shadow">Recent Transactions</h2>
+    <div class="overflow-x-auto bg-gray-800 bg-opacity-70 backdrop-filter backdrop-blur-lg rounded-2xl shadow-xl border border-gray-700">
+      <table class="min-w-full divide-y divide-gray-700">
+        <thead class="bg-gray-900 text-white">
+          <tr>
+            <th scope="col" class="p-4 text-left text-sm font-semibold uppercase tracking-wider">Date</th>
+            <th scope="col" class="p-4 text-left text-sm font-semibold uppercase tracking-wider">Description</th>
+            <th scope="col" class="p-4 text-left text-sm font-semibold uppercase tracking-wider">Amount</th>
+            <th scope="col" class="p-4 whitespace-nowrap text-left text-sm font-semibold uppercase tracking-wider">Category</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-700">
+          {% for transaction in transactions %}
+          <tr>
+            <td class="p-4 whitespace-nowrap text-gray-300">{{ transaction.date }}</td>
+            <td class="p-4 whitespace-nowrap text-gray-300">{{ transaction.description }}</td>
+            <td class="p-4 whitespace-nowrap font-medium {% if transaction.amount > 0 %}text-emerald-400{% else %}text-rose-400{% endif %}">${{ transaction.amount|floatformat:2 }}</td>
+            <td class="p-4 whitespace-nowrap text-sky-400">{{ transaction.category }}</td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="4" class="p-6 text-center text-gray-500 text-lg">No recent transactions found.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div class="flex justify-center mt-8">
+      <div class="bg-gray-800 bg-opacity-70 backdrop-filter backdrop-blur-lg rounded-2xl shadow-xl p-4 flex justify-center items-center border border-gray-700 hover:bg-gray-700 transition duration-300">
+        <a href="{% url 'view_all_transactions' %}" class="font-semibold text-gray-200 hover:text-sky-400 transition-colors duration-300">
+          View All Transactions
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section class="mb-24 fade-in-section" style="transition-delay:0.49s">
+    <h2 class="text-3xl font-bold text-white border-b-4 border-emerald-400 pb-3 mb-10 text-center drop-shadow">Quick Actions</h2>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <a href="{% url 'add_expense' %}" class="flex flex-col items-center justify-center p-6 bg-gray-800 bg-opacity-70 backdrop-filter backdrop-blur-lg rounded-2xl shadow-xl border border-rose-600 text-rose-300 hover:text-rose-200 hover:border-rose-400 transition-all duration-300 transform hover:-translate-y-2 hover:shadow-2xl" title="Add Expense">
+        <i class="fas fa-minus-circle fa-3x mb-4"></i> <span class="font-bold text-xl">Add Expense</span>
+      </a>
+      <a href="{% url 'add_income' %}" class="flex flex-col items-center justify-center p-6 bg-gray-800 bg-opacity-70 backdrop-filter backdrop-blur-lg rounded-2xl shadow-xl border border-emerald-600 text-emerald-300 hover:text-emerald-200 hover:border-emerald-400 transition-all duration-300 transform hover:-translate-y-2 hover:shadow-2xl" title="Add Income">
+        <i class="fas fa-plus-circle fa-3x mb-4"></i> <span class="font-bold text-xl">Add Income</span>
+      </a>
+      <a href="{% url 'create_budget' %}" class="flex flex-col items-center justify-center p-6 bg-gray-800 bg-opacity-70 backdrop-filter backdrop-blur-lg rounded-2xl shadow-xl border border-amber-600 text-amber-300 hover:text-amber-200 hover:border-amber-400 transition-all duration-300 transform hover:-translate-y-2 hover:shadow-2xl" title="Create Budget">
+        <i class="fas fa-wallet fa-3x mb-4"></i> <span class="font-bold text-xl">Create Budget</span>
+      </a>
+      <a href="{% url 'set_goal' %}" class="flex flex-col items-center justify-center p-6 bg-gray-800 bg-opacity-70 backdrop-filter backdrop-blur-lg rounded-2xl shadow-xl border border-fuchsia-600 text-fuchsia-300 hover:text-fuchsia-200 hover:border-fuchsia-400 transition-all duration-300 transform hover:-translate-y-2 hover:shadow-2xl" title="Set Goal">
+        <i class="fas fa-bullseye fa-3x mb-4"></i> <span class="font-bold text-xl">Set a Goal</span>
+      </a>
+      <button data-modal-target="taxation-modal" data-modal-toggle="taxation-modal" class="flex flex-col items-center justify-center p-6 bg-gray-800 bg-opacity-70 backdrop-filter backdrop-blur-lg rounded-2xl shadow-xl border border-sky-600 text-sky-300 hover:text-sky-200 hover:border-sky-400 transition-all duration-300 transform hover:-translate-y-2 hover:shadow-2xl" title="Taxation">
+        <i class="fas fa-chart-line fa-3x mb-4"></i> <span class="font-bold text-xl">Taxation</span>
+      </button>
+    </div>
+  </section>
+</div>
+</div>
+{% endblock content %}
+
+{# Manual embedding of JSON data into script tags #}
+<script id="chart_labels_data" type="application/json">
+{{ chart_labels_json|safe }}
+</script>
+<script id="chart_data_data" type="application/json">
+{{ chart_data_json|safe }}
+</script>
+<script id="selected_type_data" type="application/json">
+{{ selected_type_json|safe }}
+</script>
+<script id="chart_type_data" type="application/json">
+{{ chart_type_json|safe }}
+</script>
+
+
+{% block extra_body_js %}
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Navbar JavaScript - copied directly from home.html
+        const userMenuButton = document.getElementById('user-menu-button');
+        const userDropdown = document.getElementById('user-dropdown');
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const mobileMenu = document.getElementById('mobile-menu');
+
+        // Toggle user dropdown
+        if (userMenuButton) {
+          userMenuButton.addEventListener('click', function() {
+            const isExpanded = userMenuButton.getAttribute('aria-expanded') === 'true';
+            userMenuButton.setAttribute('aria-expanded', !isExpanded);
+            userDropdown.classList.toggle('hidden');
+          });
+        }
+
+        // Toggle mobile menu
+        if (mobileMenuButton) {
+          mobileMenuButton.addEventListener('click', function() {
+            const isExpanded = mobileMenuButton.getAttribute('aria-expanded') === 'true';
+            mobileMenuButton.setAttribute('aria-expanded', !isExpanded);
+            mobileMenu.classList.toggle('hidden');
+            mobileMenuButton.children[0].classList.toggle('hidden'); // Icon open
+            mobileMenuButton.children[1].classList.toggle('hidden'); // Icon close
+          });
+        }
+
+        // Close dropdowns if clicked outside
+        window.addEventListener('click', function(event) {
+          if (userDropdown && !userMenuButton.contains(event.target) && !userDropdown.contains(event.target)) {
+            userDropdown.classList.add('hidden');
+            if (userMenuButton) userMenuButton.setAttribute('aria-expanded', false);
+          }
+          // Mobile menu closes only via its button, generally not by clicking outside
+        });
+
+        // Function for animating count-up numbers
+        function animateCount(element, endValue) {
+          const duration = 750, frameRate = 13, totalFrames = duration/frameRate;
+          let currentFrame = 0, start = 0;
+          function animate() {
+            currentFrame++;
+            let progress = Math.min(currentFrame / totalFrames, 1);
+            let value = start + (endValue - start) * progress;
+            element.textContent = (value>=0 ? "$" : "-$") + Math.abs(value).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
+            if (progress < 1) requestAnimationFrame(animate);
+          }
+          animate();
+        }
+
+        // --- Home page specific JavaScript (dashboard animations, chart, and modals) ---
+        // Fade-in sections
+        document.querySelectorAll('.fade-in-section').forEach((section, i) => {
+          setTimeout(()=>section.classList.add('in-view'), 50 + i*115);
+        });
+
+        // Count-up animations
+        document.querySelectorAll('.countup').forEach(el => {
+          setTimeout(() => {
+            el.classList.add('in-view');
+            animateCount(el, parseFloat(el.dataset.count.replace(/,/g,"")));
+          }, 240+Math.random()*300);
+        });
+
+        // Chart.js initialization
+        // Retrieve data safely using the manually embedded script tags
+        const chartLabels = JSON.parse(document.getElementById('chart_labels_data').textContent);
+        const chartData = JSON.parse(document.getElementById('chart_data_data').textContent);
+        const selectedType = JSON.parse(document.getElementById('selected_type_data').textContent);
+        const chartType = JSON.parse(document.getElementById('chart_type_data').textContent);
+
+        const ctx = document.getElementById("overviewChart").getContext("2d");
+        const chartColors = [
+            '#3498db','#2ecc71','#e74c3c','#f39c12','#9b59b6',
+            '#1abc9c','#34495e','#c0392b','#d35400','#8e44ad'];
+        const hoverChartColors = [
+            '#2980b9','#27ae60','#c0392b','#e67e22','#8e44ad',
+            '#16a085','#2c3e50','#a93226','#ba4a00','#7d3c98'];
+        const overviewChart = new Chart(ctx, {
+          type: chartType === "overtime" ? "bar" : "pie",
+          data: {
+            labels: chartLabels,
+            datasets: [{
+              label: selectedType,
+              data: chartData,
+              backgroundColor: chartType === "overtime"
+                ? 'rgba(52,152,219,0.76)'
+                : chartColors,
+              borderColor: "#fff",
+              borderWidth: 2,
+              hoverOffset: 8,
+              hoverBackgroundColor: chartType === "overtime"
+                ? '#3498db'
+                : hoverChartColors,
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { position: "top", labels: { color: '#f1f5f9', font: { size: 14, weight: '500' } } },
+              title: { display: true, text: `${selectedType} ${chartType==="overtime"?"Over Time":"By Category"}`, color:'#fff', font: { size: 20, weight:'600' } },
+              tooltip: { backgroundColor: 'rgba(30,41,59,0.97)', titleFont:{size:15,weight:'bold'}, bodyFont:{size:14}, padding:12, cornerRadius:7  }
+            },
+            scales: chartType === "overtime" ? {
+              y: { beginAtZero:true, grid:{color:'#33415550'}, ticks:{color:'#f8fafc'} },
+              x: { grid:{display:false}, ticks:{color:'#f8fafc'} }
+            } : {}
+          }
+        });
+
+        // Taxation Modal JavaScript
+        const taxationForm = document.getElementById('taxation-form');
+        const annualTaxationForm = document.getElementById('annual-taxation-form');
+        const taxationResults = document.getElementById('taxation-results');
+        const dateError = document.getElementById('date-error');
+
+        if (taxationForm) {
+            taxationForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                dateError.classList.add('hidden'); // Hide any previous error
+
+                const startDate = document.getElementById('start_date').value;
+                const endDate = document.getElementById('end_date').value;
+
+                // Date validation: End date must be at least one month after the start date
+                const start = new Date(startDate);
+                const end = new Date(endDate);
+                start.setMonth(start.getMonth() + 1); // Add one month to start date
+                if (end < start) {
+                    dateError.classList.remove('hidden');
+                    return;
+                }
+
+                const formData = new FormData(taxationForm);
+                const data = Object.fromEntries(formData.entries());
+
+                try {
+                    const response = await fetch('/calculate-period-tax/', { // Replace with your actual endpoint
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': data.csrfmiddlewaretoken,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(data)
+                    });
+                    const result = await response.json();
+                    if (response.ok) {
+                        document.getElementById('period-net-income-display').classList.remove('hidden');
+                        document.getElementById('period-net-income').textContent = parseFloat(result.period_net_income).toLocaleString('en-IN', {style: 'currency', currency: 'INR', minimumFractionDigits: 2});
+
+                        document.getElementById('current-fy-taxable-income').textContent = parseFloat(result.current_fy_taxable_income).toLocaleString('en-IN', {style: 'currency', currency: 'INR', minimumFractionDigits: 2});
+                        document.getElementById('current-fy-total-tax').textContent = parseFloat(result.current_fy_total_tax).toLocaleString('en-IN', {style: 'currency', currency: 'INR', minimumFractionDigits: 2});
+                        document.getElementById('current-fy-in-hand-salary').textContent = parseFloat(result.current_fy_in_hand_salary).toLocaleString('en-IN', {style: 'currency', currency: 'INR', minimumFractionDigits: 2});
+                        document.getElementById('current-fy-tax-percentage').textContent = parseFloat(result.current_fy_tax_percentage).toFixed(2);
+
+                        // Show/hide previous FY based on data availability
+                        if (result.previous_fy_taxable_income !== undefined && result.previous_fy_taxable_income !== null) {
+                            document.getElementById('previous-fy-heading').classList.remove('hidden');
+                            document.getElementById('previous-fy-taxable-income-display').classList.remove('hidden');
+                            document.getElementById('previous-fy-total-tax-display').classList.remove('hidden');
+                            document.getElementById('previous-fy-in-hand-salary-display').classList.remove('hidden');
+                            document.getElementById('previous-fy-tax-percentage-display').classList.remove('hidden');
+
+                            document.getElementById('previous-fy-taxable-income').textContent = parseFloat(result.previous_fy_taxable_income).toLocaleString('en-IN', {style: 'currency', currency: 'INR', minimumFractionDigits: 2});
+                            document.getElementById('previous-fy-total-tax').textContent = parseFloat(result.previous_fy_total_tax).toLocaleString('en-IN', {style: 'currency', currency: 'INR', minimumFractionDigits: 2});
+                            document.getElementById('previous-fy-in-hand-salary').textContent = parseFloat(result.previous_fy_in_hand_salary).toLocaleString('en-IN', {style: 'currency', currency: 'INR', minimumFractionDigits: 2});
+                            document.getElementById('previous-fy-tax-percentage').textContent = parseFloat(result.previous_fy_tax_percentage).toFixed(2);
+                        } else {
+                            document.getElementById('previous-fy-heading').classList.add('hidden');
+                            document.getElementById('previous-fy-taxable-income-display').classList.add('hidden');
+                            document.getElementById('previous-fy-total-tax-display').classList.add('hidden');
+                            document.getElementById('previous-fy-in-hand-salary-display').classList.add('hidden');
+                            document.getElementById('previous-fy-tax-percentage-display').classList.add('hidden');
+                        }
+
+                        taxationResults.classList.remove('hidden');
+                    } else {
+                        // Using a custom modal/message box instead of alert()
+                        console.error('Error calculating period tax: ' + (result.error || 'Unknown error'));
+                        // You would implement a custom modal here, e.g.:
+                        // showCustomModal('Error', 'Error calculating period tax: ' + (result.error || 'Unknown error'));
+                    }
+                } catch (error) {
+                    console.error('Fetch error:', error);
+                    // You would implement a custom modal here, e.g.:
+                    // showCustomModal('Error', 'An error occurred while communicating with the server.');
+                }
+            });
+        }
+
+        if (annualTaxationForm) {
+            annualTaxationForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                dateError.classList.add('hidden'); // Hide any previous error
+
+                const formData = new FormData(annualTaxationForm);
+                const data = Object.fromEntries(formData.entries());
+
+                try {
+                    const response = await fetch('/estimate-annual-tax/', { // Replace with your actual endpoint
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': data.csrfmiddlewaretoken,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(data)
+                    });
+                    const result = await response.json();
+                    if (response.ok) {
+                        document.getElementById('period-net-income-display').classList.add('hidden'); // Hide period specific results
+
+                        document.getElementById('current-fy-taxable-income').textContent = parseFloat(result.current_fy_taxable_income).toLocaleString('en-IN', {style: 'currency', currency: 'INR', minimumFractionDigits: 2});
+                        document.getElementById('current-fy-total-tax').textContent = parseFloat(result.current_fy_total_tax).toLocaleString('en-IN', {style: 'currency', currency: 'INR', minimumFractionDigits: 2});
+                        document.getElementById('current-fy-in-hand-salary').textContent = parseFloat(result.current_fy_in_hand_salary).toLocaleString('en-IN', {style: 'currency', currency: 'INR', minimumFractionDigits: 2});
+                        document.getElementById('current-fy-tax-percentage').textContent = parseFloat(result.current_fy_tax_percentage).toFixed(2);
+
+                        // For annual salary, typically only current FY is relevant for this calculation
+                        document.getElementById('previous-fy-heading').classList.add('hidden');
+                        document.getElementById('previous-fy-taxable-income-display').classList.add('hidden');
+                        document.getElementById('previous-fy-total-tax-display').classList.add('hidden');
+                        document.getElementById('previous-fy-in-hand-salary-display').classList.add('hidden');
+                        document.getElementById('previous-fy-tax-percentage-display').classList.add('hidden');
+
+                        taxationResults.classList.remove('hidden');
+                    } else {
+                        // Using a custom modal/message box instead of alert()
+                        console.error('Error estimating annual tax: ' + (result.error || 'Unknown error'));
+                        // You would implement a custom modal here, e.g.:
+                        // showCustomModal('Error', 'Error estimating annual tax: ' + (result.error || 'Unknown error'));
+                    }
+                } catch (error) {
+                    console.error('Fetch error:', error);
+                    // You would implement a custom modal here, e.g.:
+                    // showCustomModal('Error', 'An error occurred while communicating with the server.');
+                }
+            });
+        }
+    });
+  </script>
+{% endblock extra_body_js %}

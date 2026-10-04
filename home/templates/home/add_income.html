@@ -1,0 +1,184 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Add Income - Personal Finance Tracker</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="{% static 'fonts/Inter/inter.css' %}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.3.0/dist/chart.umd.min.js"></script>
+  <style>
+    body {font-family:'Inter','Segoe UI',Tahoma,Geneva,Verdana,sans-serif; background:#131b30; color:#f1f5f9; min-height:100vh; overflow-x:hidden;}
+    .blob-bg { pointer-events: none; z-index: 0; }
+    .glass-card {background:rgba(255,255,255,0.09); -webkit-backdrop-filter:blur(18px); backdrop-filter:blur(18px); border-radius:1.25rem; border:1.5px solid rgba(255,255,255,0.17); box-shadow:0 8px 36px 0 rgba(16,56,96,0.09),0 2px 12px 0 rgba(52,211,153,0.10); transition: box-shadow 0.18s, transform 0.19s;}
+    .glass-card:hover, .glass-card:focus-within { box-shadow: 0 16px 52px #38bdf830, 0 8px 38px #0ea5e933; transform:scale(1.018);}
+    .category-button.selected,.category-button.bg-sky-600 { background: linear-gradient(90deg,#0ea5e9 38%,#10b981 120%); color:#fff!important; border:2px solid #0ea5e999; box-shadow:0 2px 12px #38bdf841;}
+    .category-button { transition: all 0.15s; }
+    .category-slider::-webkit-scrollbar {height:8px;}
+    .category-slider::-webkit-scrollbar-thumb {background:#33415599;border-radius:5px;}
+    .form-section input, .form-section select {background:rgba(255,255,255,0.18); color:#fff; border:1.4px solid #38bdf8;border-radius:0.95rem; box-shadow:0 2px 10px #1e293b10; transition: border 0.22s, box-shadow 0.19s, background 0.25s;}
+    .form-section input:focus, .form-section select:focus {border-color:#0ea5e9; box-shadow:0 0 0 2.5px #0ea5e978; background:rgba(30,41,59,0.16);}
+    .income-list-section table th,.income-list-section table td {color:#f1f5f9;}
+    .income-list-section table th {background:#0284c7eb;}
+    .income-list-section table tbody tr:nth-child(even) {background:#33415514;}
+    .income-list-section table tbody tr:hover {background:#0ea5e92e;}
+    .edit-btn { background:linear-gradient(90deg,#38bdf8,#0ea5e9 86%);}
+    .edit-btn:hover { background:linear-gradient(90deg,#0ea5e9,#38bdf8 86%);}
+    .delete-btn { background:linear-gradient(90deg,#ef4444,#be123c 97%);}
+    .delete-btn:hover { background:linear-gradient(90deg,#be123c,#ef4444 88%);}
+    @media (max-width:1024px){ .container{flex-direction:column !important;} .form-section,.graph-section{width:100%!important;} }
+    @media (max-width:600px){ .glass-card{padding:1rem;} }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col relative bg-[#131b30] overflow-x-hidden">
+
+<div aria-hidden="true" class="fixed inset-0 z-0 blob-bg pointer-events-none select-none">
+  <div class="absolute w-72 h-72 bg-emerald-400/60 rounded-full mix-blend-screen blur-3xl animate-blob-1 top-[7%] left-[9%]"></div>
+  <div class="absolute w-[27rem] h-[22rem] bg-sky-400/60 rounded-full mix-blend-screen blur-3xl animate-blob-2 top-[71%] right-[3%]"></div>
+  <div class="absolute w-64 h-64 bg-fuchsia-500/50 rounded-full mix-blend-screen blur-3xl animate-blob-3 bottom-[8%] left-[45%]"></div>
+</div>
+
+<!-- Include the fixed/sticky navbar (make sure home/navbar.html uses fixed classes on outer div!) -->
+{% include 'home/navbar.html' %}
+
+<!-- Main content mt-20 for navbar offset -->
+<div class="container mx-auto px-4 sm:px-6 lg:px-8 py-16 flex flex-col lg:flex-row gap-10 z-10 relative mt-20">
+  <div class="form-section glass-card w-full lg:w-1/2 rounded-xl p-7">
+    <h1 class="text-3xl font-extrabold text-white mb-7 tracking-tight">Add New Income</h1>
+    <form method="POST">
+      {% csrf_token %}
+      <label for="description" class="block text-sky-200 font-semibold mb-2 mt-4">Description:</label>
+      <input type="text" id="description" name="description" required class="w-full px-4 py-2"/>
+      <label for="amount" class="block text-sky-200 font-semibold mb-2 mt-4">Amount:</label>
+      <input type="number" id="amount" name="amount" step="0.01" required class="w-full px-4 py-2"/>
+      <label for="category" class="block text-sky-200 font-semibold mb-2 mt-4">Category:</label>
+      <div class="category-slider flex overflow-x-auto gap-3 py-2 -mx-2 px-2 scrollbar-hide">
+        {% for cat in predefined_categories %}
+        <button
+          type="button"
+          class="category-button flex-shrink-0 px-4 py-2 bg-white/10 text-sky-200 border border-sky-200/30 rounded-full cursor-pointer whitespace-nowrap hover:bg-sky-600 hover:text-white transition text-sm font-semibold"
+          onclick="selectCategory('{{ cat }}')"
+        >{{ cat }}</button>
+        {% endfor %}
+      </div>
+      <input type="hidden" id="category" name="category" required />
+      <p id="selected-category" class="mt-3 text-sky-500 font-semibold text-sm">Click a category above</p>
+      <label for="date" class="block text-sky-200 font-semibold mb-2 mt-4">Date:</label>
+      <input type="date" id="date" name="date" required class="w-full px-4 py-2"/>
+      <button type="submit"
+        class="mt-7 w-full py-3 bg-gradient-to-r from-emerald-500 via-sky-500 to-fuchsia-500 text-white font-bold rounded-xl hover:from-sky-500 hover:to-emerald-700 hover:scale-105 transition focus:outline-none focus:ring-4 focus:ring-emerald-300">
+        <i class="fa-solid fa-plus mr-2"></i> Add Income
+      </button>
+    </form>
+  </div>
+  <div class="graph-section glass-card w-full lg:w-1/2 rounded-xl p-7">
+    <h2 class="text-3xl font-extrabold text-white mb-7 tracking-tight">Income Summary</h2>
+    <form method="get" id="grouping-form" class="mb-6">
+      <label for="groupBy" class="block text-sky-200 font-semibold mb-2">Group By:</label>
+      <select name="group_by" id="groupBy" onchange="document.getElementById('grouping-form').submit()" class="block w-full md:w-auto px-4 py-2 bg-[#19213a] text-sky-400 font-bold" style="color:#38bdf8;background:#19213a;">
+        <option value="weekly" {% if group_by == 'weekly' %}selected{% endif %} style="color:#38bdf8;background:#19213a;">Weekly</option>
+        <option value="monthly" {% if group_by == 'monthly' %}selected{% endif %} style="color:#38bdf8;background:#19213a;">Monthly</option>
+        <option value="yearly" {% if group_by == 'yearly' %}selected{% endif %} style="color:#38bdf8;background:#19213a;">Yearly</option>
+      </select>
+    </form>
+    <div class="h-[300px] flex items-center justify-center">
+      <canvas id="incomeChart"></canvas>
+    </div>
+  </div>
+</div>
+
+<div class="income-list-section container mx-auto px-4 sm:px-6 lg:px-8 py-12 mt-9 z-10">
+  <h2 class="text-3xl font-extrabold text-white mb-7 tracking-tight">All Incomes</h2>
+  <div class="overflow-x-auto glass-card rounded-xl">
+    <table class="min-w-full divide-y divide-gray-200">
+      <thead>
+        <tr>
+          <th class="p-4 text-left text-sm font-semibold uppercase tracking-wider">Description</th>
+          <th class="p-4 text-left text-sm font-semibold uppercase tracking-wider">Amount</th>
+          <th class="p-4 text-left text-sm font-semibold uppercase tracking-wider">Category</th>
+          <th class="p-4 text-left text-sm font-semibold uppercase tracking-wider">Date</th>
+          <th class="p-4 text-left text-sm font-semibold uppercase tracking-wider">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for income in incomes %}
+        <tr>
+          <td class="p-4 whitespace-nowrap">{{ income.description }}</td>
+          <td class="p-4 whitespace-nowrap font-medium text-emerald-400">${{ income.amount }}</td>
+          <td class="p-4 whitespace-nowrap text-sky-300">{{ income.category }}</td>
+          <td class="p-4 whitespace-nowrap text-slate-200">{{ income.date }}</td>
+          <td class="p-4 whitespace-nowrap">
+            <div class="action-buttons flex gap-2">
+              <a href="{% url 'edit_income' income.id %}" class="edit-btn inline-flex items-center px-4 py-2 rounded-lg text-white font-medium text-sm">
+                <i class="fa-solid fa-pen-to-square mr-1"></i> Edit
+              </a>
+              <form action="{% url 'delete_income' income.id %}" method="POST" class="inline-block">
+                {% csrf_token %}
+                <button type="submit" class="delete-btn inline-flex items-center px-4 py-2 rounded-lg text-white font-medium text-sm">
+                  <i class="fa-solid fa-trash mr-1"></i> Delete
+                </button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="5" class="p-6 text-center text-gray-500 text-lg">No incomes found.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+<script>
+const selectedCategoryFromServer = "{{ selected_category|escapejs }}";
+function selectCategory(category) {
+  document.getElementById("category").value = category;
+  document.getElementById("selected-category").innerText = "Selected: " + category;
+  let buttons = document.querySelectorAll(".category-button");
+  buttons.forEach((btn) => btn.classList.remove("selected", "bg-sky-600", "text-white"));
+  let selectedBtn = Array.from(buttons).find((btn) => btn.innerText.trim() === category);
+  if (selectedBtn) selectedBtn.classList.add("selected", "bg-sky-600", "text-white");
+}
+window.addEventListener("DOMContentLoaded", () => {
+  if (selectedCategoryFromServer) selectCategory(selectedCategoryFromServer);
+  const ctx = document.getElementById("incomeChart").getContext("2d");
+  const labels = JSON.parse("{{ category_labels|escapejs }}");
+  const values = JSON.parse("{{ category_values|escapejs }}");
+  new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels,
+      datasets: [{
+        label: "Income by Period",
+        data: values,
+        backgroundColor: "rgba(52,152,219,0.8)",
+        borderColor: "rgba(52,152,219,1)",
+        borderWidth: 1,
+        borderRadius: 17,
+        barThickness: 36,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      scales: {y: {beginAtZero:true, grid:{color:"#33415578"}, ticks:{color:"#f8fafc", font:{weight:'bold'}}},
+               x: {grid:{display:false}, ticks:{color:"#f8fafc", font:{weight:'bold'}}}},
+      plugins: {
+        legend:{display:false},
+        tooltip:{
+          backgroundColor:'rgba(30,41,59,0.97)',
+          titleFont:{size:16,weight:'bold'},
+          bodyFont:{size:14},
+          padding:12,
+          cornerRadius:6,
+          callbacks:{ label:ctx=>"$"+ctx.parsed.y }
+        }
+      }
+    }
+  });
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,81 @@
+/* General body styling */
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f4f4f9;
+  margin: 0;
+  padding: 0;
+}
+
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #007bff;
+  padding: 10px 20px;
+  color: white;
+}
+
+/* Styling for the logo section */
+.logo img {
+  width: 100px; /* Adjust the width of the logo */
+}
+
+/* Styling for the navigation bar */
+.navbar {
+  flex: 1;
+  text-align: center;
+}
+
+.navbar ul {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+  display: inline-flex;
+}
+
+.navbar ul li {
+  margin-left: 20px;
+}
+
+.navbar ul li a {
+  color: white;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.navbar ul li a:hover {
+  text-decoration: underline;
+}
+
+/* Styling for the profile section */
+.profile {
+  display: flex;
+  align-items: center;
+}
+
+.profile span {
+  margin-right: 15px;
+  font-weight: bold;
+}
+
+.profile a {
+  color: white;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.profile a:hover {
+  text-decoration: underline;
+}
+
+/* Responsive design for small screens */
+@media screen and (max-width: 480px) {
+  header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .navbar ul {
+    flex-direction: column;
+  }
+}

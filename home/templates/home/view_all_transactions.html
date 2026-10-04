@@ -1,0 +1,122 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>All Transactions - Personal Finance Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Using the Inter font from static files as in home.html -->
+  <link rel="stylesheet" href="{% static 'fonts/Inter/inter.css' %}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <!-- Flowbite CSS is not strictly needed for this page unless you add Flowbite components,
+       but including it for consistency with home.html's head section. -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.3.0/flowbite.min.css" rel="stylesheet" />
+  <style>
+    body {
+      font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #131b30; /* Dark background from home.html */
+      min-height: 100vh;
+      color: #f1f5f9; /* Light text color for dark background */
+    }
+    .blob-bg {
+      pointer-events: none;
+      z-index: 0;
+    }
+    .glass-card {
+      background: rgba(255,255,255,0.10);
+      -webkit-backdrop-filter: blur(18px);
+      backdrop-filter: blur(18px);
+      border-radius: 1.2rem;
+      border: 1.3px solid rgba(255,255,255,0.15);
+      box-shadow: 0 8px 32px 0 rgba(16,56,96,0.09), 0 2px 10px 0 rgba(30,64,175,0.03);
+      transition: box-shadow 0.22s, transform 0.16s;
+    }
+    .glass-card:hover, .glass-card:focus-within {
+      box-shadow: 0 10px 38px 0 #38bdf84d, 0 10px 38px 0 #2563eb13;
+      transform: translateY(-1.5px) scale(1.025);
+    }
+    /* Custom table styles from home.html */
+    .custom-table thead th { 
+        position: sticky; 
+        top:0; 
+        z-index:3;
+        background:#0284c7e6; /* Sky-700 with slight transparency */
+    }
+    .custom-table tbody tr:nth-child(even) {
+        background-color:#f1f5f935; /* Light background for even rows */
+    }
+    .custom-table tbody tr:hover {
+        background: #f7fee7cc; /* Hover effect for rows */
+    }
+    /* Scrollbar styling from home.html */
+    ::-webkit-scrollbar {width:10px;background:#1e293b;}
+    ::-webkit-scrollbar-thumb {background:#475569;border-radius:5px;}
+  </style>
+</head>
+<body class="min-h-screen flex flex-col relative overflow-x-hidden bg-[#131b30]">
+
+  <!-- Animated Background Blobs (Copied from home.html) -->
+  <div aria-hidden="true" class="fixed inset-0 z-0 blob-bg pointer-events-none select-none">
+    <div class="absolute w-96 h-96 bg-emerald-400/60 rounded-full mix-blend-screen blur-3xl animate-blob-1 top-[6%] left-[4%]"></div>
+    <div class="absolute w-[30rem] h-[32rem] bg-blue-500/60 rounded-full mix-blend-screen blur-3xl animate-blob-2 top-[59%] right-[7%]"></div>
+    <div class="absolute w-80 h-80 bg-fuchsia-500/50 rounded-full mix-blend-screen blur-3xl animate-blob-3 bottom-[6%] left-[50%]"></div>
+  </div>
+
+  <!-- Sticky Navbar (Copied from home.html, using the same include) -->
+  <div class="fixed w-full top-0 z-10 left-0 right-0 bg-white/10 backdrop-blur-md shadow-sm border-b border-white/10">
+    {% include 'home/navbar.html' %}
+  </div>
+
+  <main class="container mx-auto px-3 sm:px-6 lg:px-8 py-28 flex-grow z-10 relative">
+    <h1 class="text-4xl lg:text-5xl font-extrabold text-white text-center mb-10 leading-tight drop-shadow-2xl">
+      All Transactions
+    </h1>
+
+    <div class="overflow-x-auto glass-card">
+      <table class="min-w-full custom-table divide-y divide-gray-200">
+        <thead class="bg-sky-700 text-white">
+          <tr>
+            <th scope="col" class="p-4 text-left text-sm font-semibold uppercase tracking-wider">Date</th>
+            <th scope="col" class="p-4 text-left text-sm font-semibold uppercase tracking-wider">Description</th>
+            <th scope="col" class="p-4 text-left text-sm font-semibold uppercase tracking-wider">Amount</th>
+            <th scope="col" class="p-4 text-left text-sm font-semibold uppercase tracking-wider">Category</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200">
+          {% for transaction in transactions %}
+          <tr class="transition-colors duration-150"> {# hover:bg-gray-50 is removed as custom-table tbody tr:hover handles it #}
+            <td class="p-4 whitespace-nowrap text-slate-200">{{ transaction.date }}</td> {# Text color adjusted for dark background #}
+            <td class="p-4 whitespace-nowrap text-slate-200">{{ transaction.description }}</td> {# Text color adjusted for dark background #}
+            <td class="p-4 whitespace-nowrap font-medium {% if transaction.amount > 0 %}text-emerald-400{% else %}text-rose-400{% endif %}">${{ transaction.amount|floatformat:2 }}</td>
+            <td class="p-4 whitespace-nowrap text-sky-300">{{ transaction.category }}</td> {# Text color adjusted for dark background #}
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="4" class="p-6 text-center text-gray-400 text-lg">No transactions found.</td> {# Text color adjusted #}
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </main>
+
+  <!-- Footer (Copied from home.html) -->
+  <footer class="bg-slate-900 text-gray-300 text-center py-8 glass-card">
+    <p class="text-sm">
+      &copy; 2024 Personal Finance Tracker. All rights reserved.
+      <a href="#" class="text-sky-300 hover:underline mx-3">Privacy Policy</a> |
+      <a href="#" class="text-sky-300 hover:underline mx-3">Help Center</a> |
+      <a href="#" class="text-sky-300 hover:underline mx-3">Terms of Service</a>
+    </p>
+  </footer>
+
+  <!-- Flowbite JS (If you use any Flowbite components on this page) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.3.0/flowbite.min.js"></script>
+
+  <!-- IMPORTANT: If you have any custom JavaScript for the navbar or other elements
+       on this page, it should be placed here, similar to how it's done in home.html.
+       For this specific page, the navbar's JS is already handled by home.html's
+       consolidation. -->
+</body>
+</html>

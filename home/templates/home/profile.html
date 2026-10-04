@@ -1,0 +1,58 @@
+{% extends 'home/navbar.html' %} {# Ensure this is 'home/navbar.html' #}
+{% load static %}
+
+{% block title %}My Profile{% endblock %}
+
+{% block extra_head %}
+{% endblock %}
+
+{% block content %}
+<main class="container mx-auto px-4 py-12 flex-grow">
+    <div class="max-w-3xl mx-auto bg-white p-8 rounded-xl shadow-lg border border-gray-200">
+        <h1 class="text-4xl font-extrabold text-gray-900 text-center mb-10 border-b-4 border-sky-500 pb-4">
+            Your Profile
+        </h1>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 text-lg mb-8">
+            <div class="flex items-center space-x-4">
+                <i class="fas fa-user-circle fa-2x text-sky-600"></i>
+                <div>
+                    <p class="font-semibold text-gray-700">Username:</p>
+                    <p class="text-gray-900 font-bold">{{ request.user.username }}</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-4">
+                <i class="fas fa-envelope fa-2x text-emerald-600"></i>
+                <div>
+                    <p class="font-semibold text-gray-700">Email:</p>
+                    <p class="text-gray-900 font-bold">{{ request.user.email }}</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-4">
+                <i class="fas fa-calendar-alt fa-2x text-indigo-600"></i>
+                <div>
+                    <p class="font-semibold text-gray-700">Member Since:</p>
+                    <p class="text-gray-900 font-bold">{{ request.user.date_joined|date:"F j, Y" }}</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-4">
+                <i class="fas fa-edit fa-2x text-amber-600"></i>
+                <div>
+                    <p class="font-semibold text-gray-700">Last Updated:</p>
+                    <p class="text-gray-900 font-bold">{{ request.user.last_login|date:"F j, Y, P" }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center mt-10">
+            {# Change this line: #}
+            <a href="{% url 'edit_profile' %}" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105">
+                Edit Profile
+            </a>
+            <a href="{% url 'home' %}" class="ml-4 text-gray-600 hover:text-gray-900 font-semibold py-3 px-6 rounded-lg transition duration-300 ease-in-out">
+                Back to Dashboard
+            </a>
+        </div>
+    </div>
+</main>
+{% endblock %}

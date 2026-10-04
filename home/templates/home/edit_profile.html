@@ -1,0 +1,70 @@
+{% extends 'home/navbar.html' %} {# Make sure this path is correct based on our previous fix #}
+{% load static %}
+{% load widget_tweaks %} {# To easily add Tailwind CSS classes to form fields #}
+
+{% block title %}Edit Profile{% endblock %}
+
+{% block extra_head %}
+{% endblock %}
+
+{% block content %}
+<main class="container mx-auto px-4 py-12 flex-grow">
+    <div class="max-w-3xl mx-auto bg-white p-8 rounded-xl shadow-lg border border-gray-200">
+        <h1 class="text-4xl font-extrabold text-gray-900 text-center mb-10 border-b-4 border-sky-500 pb-4">
+            Edit Your Profile
+        </h1>
+
+        {% if messages %}
+            <div class="mb-6">
+                {% for message in messages %}
+                    <div class="p-4 rounded-lg {% if message.tags == 'success' %}bg-green-100 text-green-800{% elif message.tags == 'error' %}bg-red-100 text-red-800{% else %}bg-blue-100 text-blue-800{% endif %}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <form method="post" class="space-y-6">
+            {% csrf_token %}
+
+            <div class="mb-4">
+                <label for="{{ user_form.username.id_for_label }}" class="block text-gray-700 text-sm font-bold mb-2">Username:</label>
+                {% render_field user_form.username class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" %}
+                {% if user_form.username.errors %}
+                    <p class="text-red-500 text-xs italic">{{ user_form.username.errors }}</p>
+                {% endif %}
+            </div>
+
+            <div class="mb-4">
+                <label for="{{ user_form.email.id_for_label }}" class="block text-gray-700 text-sm font-bold mb-2">Email:</label>
+                {% render_field user_form.email class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" %}
+                {% if user_form.email.errors %}
+                    <p class="text-red-500 text-xs italic">{{ user_form.email.errors }}</p>
+                {% endif %}
+            </div>
+
+            {# Uncomment and adjust if you are using a separate ProfileEditForm #}
+            {# {% if profile_form %} #}
+            {#     {% for field in profile_form %} #}
+            {#         <div class="mb-4"> #}
+            {#             <label for="{{ field.id_for_label }}" class="block text-gray-700 text-sm font-bold mb-2">{{ field.label }}:</label> #}
+            {#             {% render_field field class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" %} #}
+            {#             {% if field.errors %} #}
+            {#                 <p class="text-red-500 text-xs italic">{{ field.errors }}</p> #}
+            {#             {% endif %} #}
+            {#         </div> #}
+            {#     {% endfor %} #}
+            {# {% endif %} #}
+
+            <div class="text-center mt-6">
+                <button type="submit" class="bg-sky-600 hover:bg-sky-700 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105">
+                    Save Changes
+                </button>
+                <a href="{% url 'view_profile' %}" class="ml-4 text-gray-600 hover:text-gray-900 font-semibold py-3 px-6 rounded-lg transition duration-300 ease-in-out">
+                    Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</main>
+{% endblock %}

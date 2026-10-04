@@ -1,0 +1,301 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Login - Expense Tracker{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: #0d1117;
+    color: #e5e7eb;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  
+  /* Liquid glass blobs */
+  .liquid-bg {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    pointer-events: none;
+  }
+  
+  .liquid-bg .blob {
+    position: absolute;
+    filter: blur(80px);
+    opacity: 0.7;
+    mix-blend-mode: lighten;
+    animation: floatingBlob 25s ease-in-out infinite alternate;
+  }
+  
+  .blob1 {
+    width: 50vw;
+    height: 50vw;
+    background: #4a5585;
+    top: -20vh;
+    left: -20vw;
+    animation-delay: 0s;
+  }
+  
+  .blob2 {
+    width: 45vw;
+    height: 45vw;
+    background: #2b6cb0;
+    top: 50vh;
+    left: 60vw;
+    animation-delay: 5s;
+  }
+  
+  .blob3 {
+    width: 40vw;
+    height: 40vw;
+    background: #5a67d8;
+    top: -10vh;
+    left: 30vw;
+    animation-delay: 10s;
+  }
+  
+  @keyframes floatingBlob {
+    0% {
+      transform: translate(0, 0) scale(1) rotate(0deg);
+    }
+    33% {
+      transform: translate(25vw, -10vh) scale(1.1) rotate(15deg);
+    }
+    66% {
+      transform: translate(-15vw, 20vh) scale(0.9) rotate(-10deg);
+    }
+    100% {
+      transform: translate(0, 0) scale(1) rotate(0deg);
+    }
+  }
+
+  .glass-card {
+    background: rgba(22, 28, 38, 0.6);
+    border-radius: 1.5rem;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    will-change: transform, opacity;
+    transform: translateY(20px);
+    opacity: 0;
+    animation: fadeIn 0.8s ease-out forwards;
+  }
+  
+  @keyframes fadeIn {
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+
+  .form-input {
+    background: rgba(31, 41, 55, 0.5);
+    border: 1px solid rgba(75, 85, 99, 0.6);
+    color: #f9fafb;
+    transition: all 0.2s ease;
+  }
+  
+  .form-input::placeholder {
+    color: #9ca3af;
+  }
+
+  .form-input:focus {
+    background: rgba(31, 41, 55, 0.8);
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+  }
+
+  .btn-primary {
+    transition: all 0.2s ease-in-out;
+  }
+  
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+  }
+
+  .btn-primary:active {
+    transform: translateY(0);
+  }
+
+  .loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(14, 17, 22, 0.9);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease;
+  }
+
+  .loading-overlay.active {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .spinner {
+    border: 4px solid rgba(255, 255, 255, 0.2);
+    border-top: 4px solid #3b82f6;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+</style>
+{% endblock extra_head %}
+
+{% block content %}
+<div class="liquid-bg" aria-hidden="true">
+  <div class="blob blob1"></div>
+  <div class="blob blob2"></div>
+  <div class="blob blob3"></div>
+</div>
+
+<div id="loading-overlay" class="loading-overlay">
+  <div class="spinner"></div>
+</div>
+
+<div class="flex items-center justify-center min-h-screen p-4 relative z-10">
+  <div class="max-w-md w-full">
+    <div class="glass-card p-8 sm:p-12">
+      <div class="text-center mb-8">
+        <svg class="w-16 h-16 mx-auto mb-3 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4c-4.418 0-8 3.582-8 8s3.582 8 8 8 8-3.582 8-8-3.582-8-8-8zm0 10c-1.657 0-3-1.343-3-3s1.343-3 3-3 3 1.343 3 3-1.343 3-3 3z" />
+        </svg>
+        <h2 class="text-3xl sm:text-4xl font-bold mb-2 text-gray-100">Welcome Back</h2>
+        <p class="text-gray-400 text-lg">Your journey to financial freedom starts here.</p>
+      </div>
+
+      {% if messages %}
+      <div class="mb-4 space-y-2">
+        {% for message in messages %}
+        <div class="{% if message.tags == 'success' %}bg-green-500/80{% elif message.tags == 'error' %}bg-red-500/80{% else %}bg-blue-500/80{% endif %} px-4 py-3 rounded-lg text-white text-sm shadow">
+          {{ message }}
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <div id="form-container">
+        {% if show_password_form %}
+        <form method="POST" autocomplete="on" class="space-y-6" id="password_form">
+          {% csrf_token %}
+          <div>
+            <label for="username" class="sr-only">Username</label>
+            <input id="username" name="username" type="text" required
+              class="form-input w-full px-4 py-3 rounded-lg focus:outline-none"
+              placeholder="Enter your username or email" />
+          </div>
+          <div>
+            <label for="password" class="sr-only">Password</label>
+            <input id="password" name="password" type="password" required
+              class="form-input w-full px-4 py-3 rounded-lg focus:outline-none"
+              placeholder="Enter your password" />
+          </div>
+          <button type="submit"
+            class="w-full py-3 rounded-lg text-lg font-semibold bg-blue-600 hover:bg-blue-700 text-white shadow-lg focus:outline-none focus:ring-4 focus:ring-blue-500/50 btn-primary">
+            Log In
+          </button>
+          <div class="mt-8 text-center">
+            <a href="{% url 'reset_password' %}" class="text-sm text-blue-400 hover:underline transition">Forgot password?</a>
+          </div>
+        </form>
+        {% else %}
+        <button onclick="handleBiometricLogin()"
+          class="w-full py-3 rounded-lg text-lg font-semibold bg-blue-600 hover:bg-blue-700 text-white shadow-lg focus:outline-none focus:ring-4 focus:ring-blue-500/50 btn-primary">
+          <span class="flex items-center justify-center gap-2">
+            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14c-1.104 0-2-.896-2-2s.896-2 2-2 2 .896 2 2-.896 2-2 2zm0-4V8m0 8v2m-4-6h-2m8 0h2" />
+            </svg>
+            Login with Biometrics
+          </span>
+        </button>
+  
+        <div class="flex items-center my-6">
+          <hr class="flex-grow border-t border-gray-700">
+          <span class="mx-4 text-gray-500 font-medium text-sm">or</span>
+          <hr class="flex-grow border-t border-gray-700">
+        </div>
+  
+        <form method="POST" autocomplete="on" class="space-y-6" id="passwordless_form">
+          {% csrf_token %}
+          <div>
+            <label for="identifier" class="sr-only">Email or Phone</label>
+            <input id="identifier" name="identifier" type="text" required autocomplete="username"
+              class="form-input w-full px-4 py-3 rounded-lg focus:outline-none"
+              placeholder="Enter your email or phone" />
+          </div>
+          <button type="submit"
+            class="w-full py-3 rounded-lg text-lg font-semibold bg-gray-700 hover:bg-gray-600 text-gray-300 shadow-lg focus:outline-none focus:ring-4 focus:ring-gray-500/50 btn-primary">
+            Send Magic Link
+          </button>
+        </form>
+  
+        <div class="mt-8 text-center">
+          <a href="{% url 'login' %}?form=password" class="text-sm text-blue-400 hover:underline transition">
+            <span class="font-medium">Or, use a password instead</span>
+          </a>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock content %}
+
+{% block extra_body_js %}
+<script>
+  // Utility function to toggle the loading overlay
+  function setLoading(active) {
+    const overlay = document.getElementById('loading-overlay');
+    if (active) {
+      overlay.classList.add('active');
+    } else {
+      overlay.classList.remove('active');
+    }
+  }
+
+  // Handle a biometric login attempt
+  function handleBiometricLogin() {
+    setLoading(true);
+    // Simulate a system biometric prompt and a successful login
+    setTimeout(() => {
+      window.location.href = '{% url "home" %}?auth_method=biometric';
+    }, 1500);
+  }
+
+  // Handle the magic link submission (POST to Django)
+  document.addEventListener('DOMContentLoaded', function() {
+    const passwordlessForm = document.getElementById('passwordless_form');
+    if (passwordlessForm) {
+      passwordlessForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        setLoading(true);
+        const identifier = document.getElementById('identifier').value;
+        setTimeout(() => {
+            window.location.href = '{% url "login" %}?message=Magic+link+sent+to+' + encodeURIComponent(identifier);
+        }, 1500);
+      });
+    }
+  });
+</script>
+{% endblock extra_body_js %}

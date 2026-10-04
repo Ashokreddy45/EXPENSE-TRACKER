@@ -1,0 +1,69 @@
+{# navbar.html - unchanged but shown for completeness #}
+{% load static %}
+<div class="fixed w-full top-0 z-10 left-0 right-0 bg-white/10 backdrop-blur-md shadow-sm border-b border-white/10">
+  <nav class="container mx-auto px-3 sm:px-6 lg:px-8 flex justify-between items-center py-4">
+    <div class="flex-shrink-0">
+      <a href="{% url 'home' %}" class="flex items-center space-x-2">
+        <img src="{% static 'home/images/logo.png' %}" alt="FinTrack Logo" class="h-10 w-auto" loading="lazy"/>
+        <span class="text-2xl font-bold text-white drop-shadow-md">FinTrack</span>
+      </a>
+    </div>
+
+    <div class="hidden md:flex flex-grow justify-center" aria-label="Main Navigation">
+      <ul class="flex space-x-8 text-lg font-medium">
+        <li><a href="{% url 'home' %}" class="text-white hover:text-sky-200 transition-colors duration-300 ease-in-out px-3 py-2 rounded-md">Home</a></li>
+        <li><a href="{% url 'about' %}" class="text-white hover:text-sky-200 transition-colors duration-300 ease-in-out px-3 py-2 rounded-md">About</a></li>
+        <li><a href="{% url 'services' %}" class="text-white hover:text-sky-200 transition-colors duration-300 ease-in-out px-3 py-2 rounded-md">Services</a></li>
+        <li><a href="{% url 'contact' %}" class="text-white hover:text-sky-200 transition-colors duration-300 ease-in-out px-3 py-2 rounded-md">Contact</a></li>
+      </ul>
+    </div>
+
+    <div class="flex items-center space-x-4">
+      {% if request.user.is_authenticated %}
+      <div class="relative">
+        <button type="button" class="flex items-center gap-x-1.5 rounded-md px-4 py-2 text-md font-semibold text-white bg-sky-600 hover:bg-sky-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-sky-700 focus:ring-sky-300 transition-all duration-200" id="user-menu-button" aria-expanded="false" aria-haspopup="true" data-dropdown-toggle="user-dropdown">
+          <i class="fas fa-user-circle fa-lg mr-1"></i>
+          {{ request.user.username }}
+          <svg class="-mr-1 h-5 w-5 text-gray-200" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.25 4.25a.75.75 0 01-1.06 0L5.21 8.29a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
+          </svg>
+        </button>
+        <div class="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none hidden" role="menu" aria-orientation="vertical" aria-labelledby="user-menu-button" tabindex="-1" id="user-dropdown">
+          <div class="py-1" role="none">
+            <a href="{% url 'view_profile' %}" class="text-gray-700 block px-4 py-2 text-sm hover:bg-gray-100 hover:text-gray-900 transition-colors duration-200" role="menuitem" tabindex="-1">
+              <i class="fas fa-id-card mr-2"></i> View Profile
+            </a>
+            <a href="{% url 'logout' %}" class="text-gray-700 block px-4 py-2 text-sm hover:bg-gray-100 hover:text-gray-900 transition-colors duration-200" role="menuitem" tabindex="-1">
+              <i class="fas fa-sign-out-alt mr-2"></i> Logout
+            </a>
+          </div>
+        </div>
+      </div>
+      {% else %}
+      <a href="{% url 'login' %}" class="bg-sky-600 hover:bg-sky-500 text-white font-bold py-2 px-6 rounded-full transition-all duration-300 ease-in-out shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-sky-300 focus:ring-offset-2 focus:ring-offset-sky-700">
+        Login
+      </a>
+      {% endif %}
+
+      <div class="-mr-2 flex md:hidden">
+        <button type="button" class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-white hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white" aria-controls="mobile-menu" aria-expanded="false" id="mobile-menu-button" data-collapse-toggle="mobile-menu">
+          <span class="sr-only">Open main menu</span>
+          <svg class="block h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+          </svg>
+          <svg class="hidden h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </nav>
+  <div class="md:hidden hidden" id="mobile-menu">
+    <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+      <a href="{% url 'home' %}" class="text-gray-300 hover:bg-gray-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium">Home</a>
+      <a href="{% url 'about' %}" class="text-gray-300 hover:bg-gray-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium">About</a>
+      <a href="{% url 'services' %}" class="text-gray-300 hover:bg-gray-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium">Services</a>
+      <a href="{% url 'contact' %}" class="text-gray-300 hover:bg-gray-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium">Contact</a>
+    </div>
+  </div>
+</div>

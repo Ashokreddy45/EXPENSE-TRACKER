@@ -1,0 +1,65 @@
+{% load static %}
+{% load widget_tweaks %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Verify Reset Code - Expense Tracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 flex items-center justify-center min-h-screen">
+    <div class="bg-white bg-opacity-5 p-8 rounded-2xl shadow-2xl max-w-md w-full backdrop-blur-xl">
+        <h2 class="text-center text-4xl font-extrabold text-white mb-6">Verify Reset Code</h2>
+
+        {% if messages %}
+            <div class="mb-4">
+                {% for message in messages %}
+                    <p class="p-3 rounded-lg text-sm text-center font-medium 
+                        {% if message.tags == 'success' %}bg-green-600 
+                        {% elif message.tags == 'error' %}bg-red-600 
+                        {% else %}bg-blue-600{% endif %} text-white">
+                        {{ message }}
+                    </p>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <form method="POST" class="space-y-5">
+            {% csrf_token %}
+            
+            <div>
+                <label class="block text-gray-300 text-sm mb-1">Reset Code:</label>
+                {{ form.reset_code|add_class:"w-full px-4 py-3 bg-gray-700 bg-opacity-40 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-emerald-400" }}
+                {% if form.reset_code.errors %}
+                    <p class="text-red-500 text-sm">{{ form.reset_code.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <div>
+                <label class="block text-gray-300 text-sm mb-1">New Password:</label>
+                {{ form.new_password|add_class:"w-full px-4 py-3 bg-gray-700 bg-opacity-40 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-emerald-400" }}
+                {% if form.new_password.errors %}
+                    <p class="text-red-500 text-sm">{{ form.new_password.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <div>
+                <label class="block text-gray-300 text-sm mb-1">Confirm Password:</label>
+                {{ form.confirm_password|add_class:"w-full px-4 py-3 bg-gray-700 bg-opacity-40 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-emerald-400" }}
+                {% if form.confirm_password.errors %}
+                    <p class="text-red-500 text-sm">{{ form.confirm_password.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <button type="submit" class="w-full bg-gradient-to-r from-emerald-500 to-cyan-500 text-white font-bold py-3 rounded-lg hover:from-emerald-600 hover:to-cyan-600 transition transform hover:scale-105">
+                Reset Password
+            </button>
+        </form>
+
+        <p class="text-center text-gray-400 text-sm mt-6">
+            Remembered your password?
+            <a href="{% url 'login' %}" class="text-emerald-400 hover:text-emerald-300 font-semibold">Login here</a>
+        </p>
+    </div>
+</body>
+</html>

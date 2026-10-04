@@ -1,0 +1,93 @@
+{% load static %}
+{% load widget_tweaks %}
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Register - Expense Tracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="{% static 'fonts/Inter/inter.css' %}">
+    <style>
+      @keyframes blob-animation {
+        0% {transform: scale(1) translate(0, 0); border-radius:60% 40% 30% 70% / 60% 30% 70% 40%;}
+        30% {transform: scale(1.1) translate(20px, -10px); border-radius:40% 60% 70% 30% / 40% 70% 30% 60%;}
+        60% {transform: scale(0.95) translate(-10px, 15px); border-radius:70% 30% 40% 60% / 70% 40% 60% 30%;}
+        100% {transform: scale(1) translate(0, 0); border-radius:60% 40% 30% 70% / 60% 30% 70% 40%;}
+      }
+      .animate-blob-1 {animation:blob-animation 18s cubic-bezier(0.68, 0, 0.27, 1) infinite alternate;}
+      .animate-blob-2 {animation:blob-animation 22s cubic-bezier(0.68, 0, 0.27, 1) infinite alternate-reverse;}
+      .animate-blob-3 {animation:blob-animation 20s ease-in-out infinite;}
+
+      @keyframes ringGlow {
+        0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.35);}
+        60% { box-shadow: 0 0 0 10px rgba(34,211,238,0.13);}
+        100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);}
+      }
+      .input-glow:focus { animation: ringGlow 0.5s; }
+
+      @keyframes popUp {
+        0% { opacity: 0; transform: scale(0.96) translateY(18px);}
+        70% { opacity: 1; }
+        100% { opacity: 1; transform: scale(1) translateY(0);}
+      }
+      .animate-pop { animation: popUp 0.65s cubic-bezier(.53,.02,.25,1.3) both; }
+
+      .sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; border:0; clip:rect(0,0,0,0); }
+      body { font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+
+      input::placeholder { color: rgba(209,213,219,0.79)!important; }
+    </style>
+  </head>
+  <body class="antialiased min-h-screen flex flex-col items-center justify-center relative bg-gradient-to-br from-slate-900 via-indigo-950 to-blue-900 z-0 overflow-x-hidden">
+
+    <!-- Animated blobs in the background -->
+    <div aria-hidden="true" class="absolute inset-0 z-0 pointer-events-none select-none opacity-80">
+      <div class="absolute w-72 h-72 bg-emerald-400/60 rounded-full mix-blend-screen blur-3xl animate-blob-1 top-[20%] left-[8%]"></div>
+      <div class="absolute w-80 h-80 bg-cyan-500/60 rounded-full mix-blend-screen blur-3xl animate-blob-2 top-[55%] right-[10%]"></div>
+      <div class="absolute w-60 h-60 bg-purple-400/60 rounded-full mix-blend-screen blur-3xl animate-blob-3 bottom-[10%] left-[45%]"></div>
+    </div>
+
+    <!-- Register Card Container -->
+    <div class="login-container w-full relative z-10 max-w-md mx-auto md:max-w-lg">
+      <div class="rounded-[2.5rem] shadow-2xl bg-white/10 border border-white/15 backdrop-blur-2xl px-7 sm:px-10 pt-10 pb-9 animate-pop transition-all duration-300 lg:hover:shadow-emerald-500/10 focus-within:ring-4 focus-within:ring-cyan-400/30">
+        <h2 class="text-center text-4xl font-extrabold text-white mb-1 drop-shadow-lg">
+          Register
+        </h2>
+
+        {% if messages %}
+        <div class="mb-3 animate-pop">
+          {% for message in messages %}
+            <p class="px-3 py-2 rounded-xl text-base font-medium text-center mb-2 transition 
+              {% if message.tags == 'success' %}bg-emerald-500/90 text-white shadow-md
+              {% elif message.tags == 'error' %}bg-rose-600/90 text-white shadow-md
+              {% else %}bg-cyan-600/80 text-white shadow-md{% endif %}">
+              {{ message }}
+            </p>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        <form method="POST" class="space-y-6 mt-5">
+          {% csrf_token %}
+          {{ form.username|add_class:"input-glow w-full pl-12 pr-4 py-3 rounded-xl bg-white/15 border border-white/20 text-white placeholder-gray-200 outline-none focus:ring-2 focus:ring-emerald-400/70 focus:border-emerald-400 shadow-sm transition duration-300 font-medium"|attr:"placeholder:Username" }}
+          {{ form.email|add_class:"input-glow w-full pl-12 pr-4 py-3 rounded-xl bg-white/15 border border-white/20 text-white placeholder-gray-200 outline-none focus:ring-2 focus:ring-cyan-400/70 focus:border-cyan-400 shadow-sm transition duration-300 font-medium"|attr:"placeholder:Email" }}
+          {{ form.password|add_class:"input-glow w-full pl-12 pr-4 py-3 rounded-xl bg-white/15 border border-white/20 text-white placeholder-gray-200 outline-none focus:ring-2 focus:ring-emerald-400/70 focus:border-emerald-400 shadow-sm transition duration-300 font-medium"|attr:"placeholder:Password" }}
+          {{ form.confirm_password|add_class:"input-glow w-full pl-12 pr-4 py-3 rounded-xl bg-white/15 border border-white/20 text-white placeholder-gray-200 outline-none focus:ring-2 focus:ring-emerald-400/70 focus:border-emerald-400 shadow-sm transition duration-300 font-medium"|attr:"placeholder:Confirm Password" }}
+
+          <button type="submit"
+            class="w-full py-3 rounded-xl font-bold text-lg bg-gradient-to-br from-emerald-500 via-cyan-400 to-blue-600 hover:from-cyan-500 hover:to-emerald-600 hover:scale-[1.03] transition-all duration-200 ease-linear text-white shadow-lg shadow-cyan-500/15 focus:outline-none focus:ring-4 focus:ring-cyan-400/60 focus:ring-offset-2 active:scale-95">
+            Register
+          </button>
+        </form>
+
+        <p class="text-center text-gray-300 text-base mt-8">
+          Already have an account?
+          <a href="{% url 'login' %}"
+            class="text-cyan-300 hover:text-emerald-300 font-semibold underline underline-offset-4 transition">Login here</a>
+        </p>
+      </div>
+    </div>
+  </body>
+</html>
