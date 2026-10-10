@@ -15,11 +15,12 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
-from django.db.models import Sum, Avg, Max
+from django.db.models import Sum, Avg, Max, Q
 from django.db.models.functions import TruncWeek, TruncMonth, TruncYear
 from django.utils import timezone
 from django.utils.http import urlencode
 from django.core.mail import send_mail
+from django.core.paginator import Paginator
 
 from webauthn import (
     generate_registration_options,
@@ -67,6 +68,7 @@ def get_financial_year_dates(start_year):
     return fy_start, fy_end
 
 
+
 def calculate_tax(
     gross_income,
     financial_year,
@@ -74,54 +76,71 @@ def calculate_tax(
     opted_old_regime=False,
 ):
     """
-    Calculate estimated income tax and return the values
-    required by calculate_taxation().
+    AY 2026-27 Indian income-tax calculator.
+
+    Intended for an individual below 60 years of age.
+    Calculates either the old or new regime.
+
+    IMPORTANT:
+    - gross_income is gross income before standard deduction.
+    - Personal expenses are NOT treated as tax deductions.
+    - Old-regime deductions such as 80C/80D are not included unless
+      explicitly added later.
     """
 
-    gross_income = Decimal(str(gross_income))
+    gross_income = Decimal(str(gross_income or "0"))
 
     if gross_income < Decimal("0"):
         gross_income = Decimal("0")
 
-    # Standard deduction
+    # ---------------------------------------------------------
+    # STANDARD DEDUCTION
+    # ---------------------------------------------------------
     if is_salaried:
-        if opted_old_regime:
-            standard_deduction = Decimal("50000.00")
-        else:
-            standard_deduction = Decimal("75000.00")
+        standard_deduction = (
+            Decimal("50000")
+            if opted_old_regime
+            else Decimal("75000")
+        )
     else:
-        standard_deduction = Decimal("0.00")
+        standard_deduction = Decimal("0")
 
     taxable_income = max(
-        Decimal("0.00"),
-        gross_income - standard_deduction,
+        Decimal("0"),
+        gross_income - standard_deduction
     )
 
-    # New tax regime
-    if not opted_old_regime:
-        slabs = [
-            (Decimal("400000"), Decimal("0.00")),
-            (Decimal("400000"), Decimal("0.05")),
-            (Decimal("400000"), Decimal("0.10")),
-            (Decimal("400000"), Decimal("0.15")),
-            (Decimal("400000"), Decimal("0.20")),
-            (None, Decimal("0.30")),
-        ]
-
-    # Old tax regime
-    else:
+    # ---------------------------------------------------------
+    # AY 2026-27 TAX SLABS
+    # ---------------------------------------------------------
+    if opted_old_regime:
         slabs = [
             (Decimal("250000"), Decimal("0.00")),
             (Decimal("250000"), Decimal("0.05")),
             (Decimal("500000"), Decimal("0.20")),
             (None, Decimal("0.30")),
         ]
+        regime = "Old Regime"
+    else:
+        slabs = [
+            (Decimal("400000"), Decimal("0.00")),
+            (Decimal("400000"), Decimal("0.05")),
+            (Decimal("400000"), Decimal("0.10")),
+            (Decimal("400000"), Decimal("0.15")),
+            (Decimal("400000"), Decimal("0.20")),
+            (Decimal("400000"), Decimal("0.25")),
+            (None, Decimal("0.30")),
+        ]
+        regime = "New Regime"
 
+    # ---------------------------------------------------------
+    # SLAB TAX
+    # ---------------------------------------------------------
     remaining_income = taxable_income
-    total_tax = Decimal("0.00")
+    slab_tax = Decimal("0")
 
     for slab_limit, rate in slabs:
-        if remaining_income <= Decimal("0.00"):
+        if remaining_income <= Decimal("0"):
             break
 
         if slab_limit is None:
@@ -129,38 +148,210 @@ def calculate_tax(
         else:
             slab_income = min(
                 remaining_income,
-                slab_limit,
+                slab_limit
             )
 
-        total_tax += slab_income * rate
+        slab_tax += slab_income * rate
         remaining_income -= slab_income
 
-    # 4% Health and Education Cess
-    total_tax += total_tax * Decimal("0.04")
+    # ---------------------------------------------------------
+    # SECTION 87A REBATE
+    # ---------------------------------------------------------
+    rebate = Decimal("0")
 
-    # New-regime rebate
+    if opted_old_regime:
+        if taxable_income <= Decimal("500000"):
+            rebate = min(
+                slab_tax,
+                Decimal("12500")
+            )
+    else:
+        if taxable_income <= Decimal("1200000"):
+            rebate = min(
+                slab_tax,
+                Decimal("60000")
+            )
+
+    tax_after_rebate = max(
+        Decimal("0"),
+        slab_tax - rebate
+    )
+
+    # ---------------------------------------------------------
+    # NEW-REGIME MARGINAL RELIEF
+    #
+    # For taxable income just above ₹12 lakh.
+    # ---------------------------------------------------------
+    marginal_relief = Decimal("0")
+
     if (
         not opted_old_regime
-        and taxable_income <= Decimal("1200000")
+        and taxable_income > Decimal("1200000")
+        and taxable_income <= Decimal("1270588")
     ):
-        total_tax = Decimal("0.00")
+        excess_income = taxable_income - Decimal("1200000")
 
-    total_tax = total_tax.quantize(Decimal("0.01"))
+        if tax_after_rebate > excess_income:
+            marginal_relief = (
+                tax_after_rebate - excess_income
+            )
 
-    if taxable_income > Decimal("0.00"):
+            tax_after_rebate = excess_income
+
+    # ---------------------------------------------------------
+    # SURCHARGE
+    # ---------------------------------------------------------
+    if taxable_income <= Decimal("5000000"):
+        surcharge_rate = Decimal("0")
+    elif taxable_income <= Decimal("10000000"):
+        surcharge_rate = Decimal("0.10")
+    elif taxable_income <= Decimal("20000000"):
+        surcharge_rate = Decimal("0.15")
+    elif taxable_income <= Decimal("50000000"):
+        surcharge_rate = Decimal("0.25")
+    else:
+        surcharge_rate = (
+            Decimal("0.25")
+            if not opted_old_regime
+            else Decimal("0.37")
+        )
+
+    surcharge = (
+        tax_after_rebate * surcharge_rate
+    )
+
+    # ---------------------------------------------------------
+    # SURCHARGE MARGINAL RELIEF
+    # ---------------------------------------------------------
+    surcharge_marginal_relief = Decimal("0")
+
+    surcharge_thresholds = [
+        Decimal("5000000"),
+        Decimal("10000000"),
+        Decimal("20000000"),
+    ]
+
+    if opted_old_regime:
+        surcharge_thresholds.append(
+            Decimal("50000000")
+        )
+
+    for threshold in surcharge_thresholds:
+        if taxable_income > threshold:
+            excess_income = taxable_income - threshold
+
+            threshold_tax_result = calculate_tax(
+                threshold,
+                financial_year,
+                is_salaried=False,
+                opted_old_regime=opted_old_regime,
+            )
+
+            threshold_tax = (
+                threshold_tax_result["income_tax_after_rebate"]
+                + threshold_tax_result["surcharge"]
+            )
+
+            tax_with_surcharge = (
+                tax_after_rebate + surcharge
+            )
+
+            allowed_tax = threshold_tax + excess_income
+
+            if tax_with_surcharge > allowed_tax:
+                surcharge_marginal_relief = (
+                    tax_with_surcharge - allowed_tax
+                )
+
+                surcharge = max(
+                    Decimal("0"),
+                    surcharge - surcharge_marginal_relief
+                )
+
+            break
+
+    # ---------------------------------------------------------
+    # HEALTH & EDUCATION CESS
+    # ---------------------------------------------------------
+    income_tax_after_rebate = tax_after_rebate
+
+    tax_plus_surcharge = (
+        income_tax_after_rebate + surcharge
+    )
+
+    cess = tax_plus_surcharge * Decimal("0.04")
+
+    total_tax = (
+        tax_plus_surcharge + cess
+    )
+
+    # Tax is normally rounded to nearest ₹10.
+    total_tax = (
+        (total_tax / Decimal("10"))
+        .quantize(Decimal("1"))
+        * Decimal("10")
+    )
+
+    # ---------------------------------------------------------
+    # EFFECTIVE RATE / IN-HAND
+    # ---------------------------------------------------------
+    if taxable_income > Decimal("0"):
         tax_percentage = (
             total_tax / taxable_income
         ) * Decimal("100")
     else:
-        tax_percentage = Decimal("0.00")
+        tax_percentage = Decimal("0")
+
+    in_hand_salary = max(
+        Decimal("0"),
+        gross_income - total_tax
+    )
+
+    monthly_tax = total_tax / Decimal("12")
+    monthly_in_hand = in_hand_salary / Decimal("12")
 
     return {
+        "gross_income": gross_income,
+        "standard_deduction": standard_deduction,
         "taxable_income_after_deduction": taxable_income,
+
+        "slab_tax": slab_tax,
+        "rebate": rebate,
+
+        "income_tax_after_rebate": income_tax_after_rebate,
+
+        "marginal_relief": marginal_relief,
+
+        "surcharge_rate": surcharge_rate,
+        "surcharge": surcharge,
+        "surcharge_marginal_relief": surcharge_marginal_relief,
+
+        "cess": cess,
+
+        "total_tax_amount": total_tax,
+
         "tax_percentage": tax_percentage.quantize(
             Decimal("0.01")
         ),
-        "total_tax_amount": total_tax,
+
+        "in_hand_salary": in_hand_salary,
+
+        "monthly_tax": monthly_tax,
+        "monthly_in_hand": monthly_in_hand,
+
+        "regime": regime,
+
+        "tax_rule_reference": (
+            "AY 2026-27 / FY 2025-26"
+        ),
+
+        "calculation_scope": (
+            "Normal slab-rate income estimate. "
+            "Special-rate income and additional "
+            "deductions/exemptions are not included."
+        ),
     }
+
 
 User = CustomUser
 getcontext().prec = 10
@@ -270,132 +461,431 @@ def finish_authentication(request):
         return JsonResponse({"error": str(e)}, status=400)
     except Exception as e:
         return JsonResponse({"error": f"An unexpected error occurred: {str(e)}"}, status=500)
+
 @csrf_exempt
 @login_required
 def calculate_taxation(request):
-    if request.method == 'POST':
-        try:
-            data = json.loads(request.body)
-            calculation_type = data.get('calculation_type')
-            user = request.user
+    """
+    Taxation comparison endpoint.
 
-            if calculation_type == 'annual_estimate':
-                annual_salary_gross = Decimal(str(data.get('annual_salary', '0.00')))
-                opted_old_regime = data.get('opted_old_regime', False)
+    Returns BOTH:
+      - New Tax Regime
+      - Old Tax Regime
 
-                today = timezone.now().date()
-                fy_start_year = today.year if today.month >= 4 else today.year - 1
-                current_fy_string = f"{fy_start_year}-{fy_start_year + 1}"
+    so the UI can recommend the lower-tax option.
+    """
 
-                annual_tax_results = calculate_tax(annual_salary_gross, current_fy_string,
-                                                   is_salaried=True, opted_old_regime=opted_old_regime)
-                in_hand_salary = annual_salary_gross - annual_tax_results['total_tax_amount']
+    if request.method != "POST":
+        return JsonResponse(
+            {"error": "Invalid request method"},
+            status=405
+        )
 
-                response_data = {
-                    'current_fy': {
-                        'taxable_income': float(annual_tax_results['taxable_income_after_deduction']),
-                        'tax_percentage': float(annual_tax_results['tax_percentage']),
-                        'total_tax_amount': float(annual_tax_results['total_tax_amount']),
-                        'in_hand_salary': float(in_hand_salary),
-                    },
-                }
-                return JsonResponse(response_data)
+    try:
+        data = json.loads(request.body)
+        calculation_type = data.get("calculation_type")
+        user = request.user
 
-            elif calculation_type == 'period':
-                start_date_str = data.get('start_date')
-                end_date_str = data.get('end_date')
-                opted_old_regime = data.get('opted_old_regime', False)
+        # -----------------------------------------------------
+        # Helper
+        # -----------------------------------------------------
+        def serialize_tax_result(result):
+            return {
+                key: float(value)
+                if isinstance(value, Decimal)
+                else value
+                for key, value in result.items()
+            }
 
-                start_date = date.fromisoformat(start_date_str)
-                end_date = date.fromisoformat(end_date_str)
+        # -----------------------------------------------------
+        # ANNUAL SALARY
+        # -----------------------------------------------------
+        if calculation_type == "annual_estimate":
 
-                min_end_date = start_date + relativedelta(months=+1)
-                if end_date < min_end_date:
-                    return JsonResponse({'error': 'End date must be at least one month after the start date.'}, status=400)
+            annual_salary_gross = Decimal(
+                str(data.get("annual_salary", "0"))
+            )
 
-                total_income_period = Income.objects.filter(
-                    user=user,
-                    date__gte=start_date,
-                    date__lte=end_date
-                ).aggregate(Sum('amount'))['amount__sum'] or Decimal('0.00')
+            if annual_salary_gross < 0:
+                return JsonResponse(
+                    {"error": "Annual salary cannot be negative."},
+                    status=400
+                )
 
-                total_expense_period = Transaction.objects.filter(
-                    user=user,
-                    date__gte=start_date,
-                    date__lte=end_date
-                ).aggregate(Sum('amount'))['amount__sum'] or Decimal('0.00')
+            today = timezone.now().date()
 
-                period_net_income = total_income_period - total_expense_period
+            fy_start_year = (
+                today.year
+                if today.month >= 4
+                else today.year - 1
+            )
 
-                fy_of_end_date_start_year = end_date.year if end_date.month >= 4 else end_date.year - 1
-                current_fy_string = f"{fy_of_end_date_start_year}-{fy_of_end_date_start_year + 1}"
-                current_fy_start, current_fy_end = get_financial_year_dates(str(fy_of_end_date_start_year))
+            current_fy_string = (
+                f"{fy_start_year}-{fy_start_year + 1}"
+            )
 
-                current_fy_total_income = Income.objects.filter(
-                    user=user,
-                    date__gte=current_fy_start,
-                    date__lte=current_fy_end
-                ).aggregate(Sum('amount'))['amount__sum'] or Decimal('0.00')
+            new_regime = calculate_tax(
+                annual_salary_gross,
+                current_fy_string,
+                is_salaried=True,
+                opted_old_regime=False,
+            )
 
-                current_fy_total_expense = Transaction.objects.filter(
-                    user=user,
-                    date__gte=current_fy_start,
-                    date__lte=current_fy_end
-                ).aggregate(Sum('amount'))['amount__sum'] or Decimal('0.00')
+            old_regime = calculate_tax(
+                annual_salary_gross,
+                current_fy_string,
+                is_salaried=True,
+                opted_old_regime=True,
+            )
 
-                current_fy_taxable_income_gross = current_fy_total_income - current_fy_total_expense
-                current_fy_tax_results = calculate_tax(current_fy_taxable_income_gross, current_fy_string,
-                                                       is_salaried=False, opted_old_regime=opted_old_regime)
-                current_fy_in_hand_salary = current_fy_total_income - current_fy_tax_results['total_tax_amount']
-
-                previous_fy_start_year = fy_of_end_date_start_year - 1
-                previous_fy_string = f"{previous_fy_start_year}-{previous_fy_start_year + 1}"
-                previous_fy_start, previous_fy_end = get_financial_year_dates(str(previous_fy_start_year))
-
-                previous_fy_total_income = Income.objects.filter(
-                    user=user,
-                    date__gte=previous_fy_start,
-                    date__lte=previous_fy_end
-                ).aggregate(Sum('amount'))['amount__sum'] or Decimal('0.00')
-
-                previous_fy_total_expense = Transaction.objects.filter(
-                    user=user,
-                    date__gte=previous_fy_start,
-                    date__lte=previous_fy_end
-                ).aggregate(Sum('amount'))['amount__sum'] or Decimal('0.00')
-
-                previous_fy_taxable_income_gross = previous_fy_total_income - previous_fy_total_expense
-                previous_fy_tax_results = calculate_tax(previous_fy_taxable_income_gross, previous_fy_string,
-                                                        is_salaried=False, opted_old_regime=opted_old_regime)
-                previous_fy_in_hand_salary = previous_fy_total_income - previous_fy_tax_results['total_tax_amount']
-
-                response_data = {
-                    'period_net_income': float(period_net_income),
-                    'current_fy': {
-                        'taxable_income': float(current_fy_tax_results['taxable_income_after_deduction']),
-                        'tax_percentage': float(current_fy_tax_results['tax_percentage']),
-                        'total_tax_amount': float(current_fy_tax_results['total_tax_amount']),
-                        'in_hand_salary': float(current_fy_in_hand_salary),
-                    },
-                    'previous_fy': {
-                        'taxable_income': float(previous_fy_tax_results['taxable_income_after_deduction']),
-                        'tax_percentage': float(previous_fy_tax_results['tax_percentage']),
-                        'total_tax_amount': float(previous_fy_tax_results['total_tax_amount']),
-                        'in_hand_salary': float(previous_fy_in_hand_salary),
-                    },
-                }
-                return JsonResponse(response_data)
+            if (
+                new_regime["total_tax_amount"]
+                <= old_regime["total_tax_amount"]
+            ):
+                recommended = "New Regime"
+                savings = (
+                    old_regime["total_tax_amount"]
+                    - new_regime["total_tax_amount"]
+                )
             else:
-                return JsonResponse({'error': 'Invalid calculation type'}, status=400)
+                recommended = "Old Regime"
+                savings = (
+                    new_regime["total_tax_amount"]
+                    - old_regime["total_tax_amount"]
+                )
 
-        except json.JSONDecodeError:
-            return JsonResponse({'error': 'Invalid JSON payload'}, status=400)
-        except ValueError as e:
-            return JsonResponse({'error': f'Invalid input value or date format: {str(e)}'}, status=400)
-        except Exception as e:
-            logger.error("Unexpected error in calculate_taxation view: %s", e, exc_info=True)
-            return JsonResponse({'error': f'An internal server error occurred: {str(e)}'}, status=500)
-    return JsonResponse({'error': 'Invalid request method'}, status=405)
+            return JsonResponse({
+                "calculation_type": "annual_estimate",
+
+                "tax_year": "AY 2026-27",
+                "financial_year": "FY 2025-26",
+
+                "gross_income": float(
+                    annual_salary_gross
+                ),
+
+                "recommended_regime": recommended,
+
+                "tax_saving": float(savings),
+
+                "new_regime": serialize_tax_result(
+                    new_regime
+                ),
+
+                "old_regime": serialize_tax_result(
+                    old_regime
+                ),
+            })
+
+        # -----------------------------------------------------
+        # PERIOD
+        # -----------------------------------------------------
+        elif calculation_type == "period":
+
+            start_date_str = data.get("start_date")
+            end_date_str = data.get("end_date")
+
+            if not start_date_str or not end_date_str:
+                return JsonResponse(
+                    {"error": "Start date and end date are required."},
+                    status=400
+                )
+
+            start_date = date.fromisoformat(
+                start_date_str
+            )
+
+            end_date = date.fromisoformat(
+                end_date_str
+            )
+
+            min_end_date = (
+                start_date
+                + relativedelta(months=+1)
+            )
+
+            if end_date < min_end_date:
+                return JsonResponse(
+                    {
+                        "error":
+                        "End date must be at least one month "
+                        "after the start date."
+                    },
+                    status=400
+                )
+
+            # -------------------------------------------------
+            # CASH FLOW
+            # -------------------------------------------------
+            total_income_period = (
+                Income.objects
+                .filter(
+                    user=user,
+                    date__gte=start_date,
+                    date__lte=end_date,
+                )
+                .aggregate(
+                    Sum("amount")
+                )["amount__sum"]
+                or Decimal("0")
+            )
+
+            total_expense_period = (
+                Transaction.objects
+                .filter(
+                    user=user,
+                    date__gte=start_date,
+                    date__lte=end_date,
+                )
+                .aggregate(
+                    Sum("amount")
+                )["amount__sum"]
+                or Decimal("0")
+            )
+
+            period_net_income = (
+                total_income_period
+                - total_expense_period
+            )
+
+            # -------------------------------------------------
+            # CURRENT FY
+            # -------------------------------------------------
+            fy_start_year = (
+                end_date.year
+                if end_date.month >= 4
+                else end_date.year - 1
+            )
+
+            current_fy_string = (
+                f"{fy_start_year}-{fy_start_year + 1}"
+            )
+
+            current_fy_start, current_fy_end = (
+                get_financial_year_dates(
+                    str(fy_start_year)
+                )
+            )
+
+            current_fy_total_income = (
+                Income.objects
+                .filter(
+                    user=user,
+                    date__gte=current_fy_start,
+                    date__lte=current_fy_end,
+                )
+                .aggregate(
+                    Sum("amount")
+                )["amount__sum"]
+                or Decimal("0")
+            )
+
+            current_fy_total_expense = (
+                Transaction.objects
+                .filter(
+                    user=user,
+                    date__gte=current_fy_start,
+                    date__lte=current_fy_end,
+                )
+                .aggregate(
+                    Sum("amount")
+                )["amount__sum"]
+                or Decimal("0")
+            )
+
+            # IMPORTANT:
+            # Expenses are shown for cash-flow purposes.
+            # They are NOT automatically deducted from taxable income.
+            current_taxable_gross = (
+                current_fy_total_income
+            )
+
+            current_new = calculate_tax(
+                current_taxable_gross,
+                current_fy_string,
+                is_salaried=False,
+                opted_old_regime=False,
+            )
+
+            current_old = calculate_tax(
+                current_taxable_gross,
+                current_fy_string,
+                is_salaried=False,
+                opted_old_regime=True,
+            )
+
+            # -------------------------------------------------
+            # PREVIOUS FY
+            # -------------------------------------------------
+            previous_fy_start_year = (
+                fy_start_year - 1
+            )
+
+            previous_fy_string = (
+                f"{previous_fy_start_year}-"
+                f"{previous_fy_start_year + 1}"
+            )
+
+            previous_fy_start, previous_fy_end = (
+                get_financial_year_dates(
+                    str(previous_fy_start_year)
+                )
+            )
+
+            previous_fy_total_income = (
+                Income.objects
+                .filter(
+                    user=user,
+                    date__gte=previous_fy_start,
+                    date__lte=previous_fy_end,
+                )
+                .aggregate(
+                    Sum("amount")
+                )["amount__sum"]
+                or Decimal("0")
+            )
+
+            previous_fy_total_expense = (
+                Transaction.objects
+                .filter(
+                    user=user,
+                    date__gte=previous_fy_start,
+                    date__lte=previous_fy_end,
+                )
+                .aggregate(
+                    Sum("amount")
+                )["amount__sum"]
+                or Decimal("0")
+            )
+
+            previous_new = calculate_tax(
+                previous_fy_total_income,
+                previous_fy_string,
+                is_salaried=False,
+                opted_old_regime=False,
+            )
+
+            previous_old = calculate_tax(
+                previous_fy_total_income,
+                previous_fy_string,
+                is_salaried=False,
+                opted_old_regime=True,
+            )
+
+            if (
+                current_new["total_tax_amount"]
+                <= current_old["total_tax_amount"]
+            ):
+                recommended = "New Regime"
+                savings = (
+                    current_old["total_tax_amount"]
+                    - current_new["total_tax_amount"]
+                )
+            else:
+                recommended = "Old Regime"
+                savings = (
+                    current_new["total_tax_amount"]
+                    - current_old["total_tax_amount"]
+                )
+
+            return JsonResponse({
+                "calculation_type": "period",
+
+                "tax_year": "AY 2026-27",
+                "financial_year": current_fy_string,
+
+                "period_net_income": float(
+                    period_net_income
+                ),
+
+                "period_income": float(
+                    total_income_period
+                ),
+
+                "period_expenses": float(
+                    total_expense_period
+                ),
+
+                "current_fy_income": float(
+                    current_fy_total_income
+                ),
+
+                "current_fy_expenses": float(
+                    current_fy_total_expense
+                ),
+
+                "previous_fy_income": float(
+                    previous_fy_total_income
+                ),
+
+                "previous_fy_expenses": float(
+                    previous_fy_total_expense
+                ),
+
+                "recommended_regime": recommended,
+
+                "tax_saving": float(savings),
+
+                "current_fy": {
+                    "new_regime": serialize_tax_result(
+                        current_new
+                    ),
+                    "old_regime": serialize_tax_result(
+                        current_old
+                    ),
+                },
+
+                "previous_fy": {
+                    "new_regime": serialize_tax_result(
+                        previous_new
+                    ),
+                    "old_regime": serialize_tax_result(
+                        previous_old
+                    ),
+                },
+
+                "tax_note": (
+                    "Tracked expenses are shown as cash-flow "
+                    "expenses and are not automatically treated "
+                    "as income-tax deductions."
+                ),
+            })
+
+        else:
+            return JsonResponse(
+                {"error": "Invalid calculation type"},
+                status=400
+            )
+
+    except json.JSONDecodeError:
+        return JsonResponse(
+            {"error": "Invalid JSON payload"},
+            status=400
+        )
+
+    except ValueError as e:
+        return JsonResponse(
+            {
+                "error":
+                f"Invalid input value or date format: {str(e)}"
+            },
+            status=400
+        )
+
+    except Exception as e:
+        logger.error(
+            "Unexpected error in calculate_taxation: %s",
+            e,
+            exc_info=True,
+        )
+
+        return JsonResponse(
+            {
+                "error":
+                f"An internal server error occurred: {str(e)}"
+            },
+            status=500
+        )
 
 
 # --- NEW CATEGORY MANAGEMENT VIEWS (FULLY INTEGRATED) ---
@@ -410,22 +900,49 @@ def add_category_view(request):
         # CHANGES: Pass 'request=request' to the form for user-specific validation/filtering
         form = CategoryForm(request.POST, request=request)
         if form.is_valid():
-            category = form.save(commit=False)
-            category.user = request.user # Assign the current user to the category
-            category.save()
-            messages.success(request, f"Category '{category.name}' added successfully!")
-            return redirect('list_categories')
+            category_name = form.cleaned_data['name']
+            category_type = form.cleaned_data['type']
+
+            duplicate_exists = Category.objects.filter(
+                user=request.user,
+                name=category_name,
+                type=category_type,
+            ).exists()
+
+            if duplicate_exists:
+                form.add_error(
+                    'name',
+                    'You already have a category with this name and type.',
+                )
+                messages.error(request, 'This category already exists.')
+            else:
+                category = form.save(commit=False)
+                category.user = request.user
+                category.save()
+                messages.success(
+                    request,
+                    f"Category '{category.name}' added successfully!",
+                )
+                return redirect('list_categories')
         else:
             messages.error(request, 'Please correct the errors below.')
     else:
         # CHANGES: Pass 'request=request' to the form when rendering for GET request
         form = CategoryForm(request=request)
 
-    # Fetch categories for displaying in the template, categorized by type
     expense_categories = Category.objects.filter(user=request.user, type='expense').order_by('name')
     income_categories = Category.objects.filter(user=request.user, type='income').order_by('name')
-    budget_categories = Category.objects.filter(user=request.user, type__in=['expense', 'budget']).order_by('name') # Budgets typically use expense categories, or specific budget ones
-    goal_categories = Category.objects.filter(user=request.user, type__in=['goal', 'savings', 'investments']).order_by('name') # Goals can have specific types
+    budget_categories = Category.objects.filter(
+        user=request.user,
+        type__in=['expense', 'budget']
+    ).order_by('name')
+    goal_categories = Category.objects.filter(
+        user=request.user,
+        type__in=['goal', 'savings', 'investments']
+    ).order_by('name')
+
+    # Fetch categories for displaying in the template, categorized by type
+
 
     return render(request, 'home/manage_categories.html', {
         'form': form,
@@ -443,8 +960,14 @@ def list_categories_view(request):
     """
     expense_categories = Category.objects.filter(user=request.user, type='expense').order_by('name')
     income_categories = Category.objects.filter(user=request.user, type='income').order_by('name')
-    budget_categories = Category.objects.filter(user=request.user, type__in=['expense', 'budget']).order_by('name')
-    goal_categories = Category.objects.filter(user=request.user, type__in=['goal', 'savings', 'investments']).order_by('name')
+    budget_categories = Category.objects.filter(
+        user=request.user,
+        type__in=['expense', 'budget']
+    ).order_by('name')
+    goal_categories = Category.objects.filter(
+        user=request.user,
+        type__in=['goal', 'savings', 'investments']
+    ).order_by('name')
 
     return render(request, 'home/manage_categories.html', {
         'expense_categories': expense_categories,
@@ -890,7 +1413,8 @@ def reset_password_view(request):
             try:
                 profile = Profile.objects.get(user__email=email)
                 profile.reset_code = reset_code
-                profile.save()
+                profile.reset_code_created_at = timezone.now()
+                profile.save(update_fields=['reset_code', 'reset_code_created_at'])
             except Profile.DoesNotExist:
                 messages.error(request, "No user associated with this email address.")
                 return redirect('reset_password')
@@ -906,7 +1430,7 @@ def reset_password_view(request):
         else:
             messages.error(request, "Please correct the errors below.")
     else:
-        form = ResetCodeForm()
+        form = ResetPasswordForm()
     return render(request, 'home/reset_password.html', {'form': form})
 
 def verify_reset_code_view(request):
@@ -917,13 +1441,21 @@ def verify_reset_code_view(request):
             new_password = form.cleaned_data['new_password']
             try:
                 profile = Profile.objects.get(reset_code=reset_code)
-                user = profile.user
-                user.set_password(new_password)
-                user.save()
-                profile.reset_code = ''
-                profile.save()
-                messages.success(request, 'Password reset successfully. You can now log in with your new password.')
-                return redirect('login')
+                expiry_time = timezone.now() - timedelta(minutes=15)
+                if not profile.reset_code_created_at or profile.reset_code_created_at < expiry_time:
+                    profile.reset_code = ''
+                    profile.reset_code_created_at = None
+                    profile.save(update_fields=['reset_code', 'reset_code_created_at'])
+                    messages.error(request, 'This reset code has expired. Please request a new one.')
+                else:
+                    user = profile.user
+                    user.set_password(new_password)
+                    user.save()
+                    profile.reset_code = ''
+                    profile.reset_code_created_at = None
+                    profile.save(update_fields=['reset_code', 'reset_code_created_at'])
+                    messages.success(request, 'Password reset successfully. You can now log in with your new password.')
+                    return redirect('login')
             except Profile.DoesNotExist:
                 messages.error(request, 'Invalid reset code. Please try again.')
         else:
@@ -958,6 +1490,8 @@ def add_expense_view(request):
     Handles adding new expenses, integrated with user-defined categories.
     Includes filtering and charting based on category.
     """
+    from django.db.models import Sum as DjangoSum
+
     if request.method == 'POST':
         # CHANGES: Pass 'request=request' to the form to filter category choices
         form = TransactionForm(request.POST, request=request)
@@ -966,10 +1500,7 @@ def add_expense_view(request):
             transaction.user = request.user # Assign the current user to the transaction
             transaction.save()
             messages.success(request, 'Expense added successfully!')
-            base_url = reverse('add_expense')
-            # CHANGES: Preserve selected category for redirect if needed (e.g., to keep filter active)
-            query_string = urlencode({'selected_category_id': transaction.category.pk})
-            return redirect(f"{base_url}?{query_string}")
+            return redirect('add_expense')
         else:
             messages.error(request, 'Please correct the errors below.')
     else:
@@ -980,26 +1511,51 @@ def add_expense_view(request):
     selected_category_id = request.GET.get('selected_category_id', '')
     group_by = request.GET.get('group_by', 'monthly')
 
-    expenses = Transaction.objects.filter(user=request.user).order_by('-date')
+    # Recent Expenses always shows the user's latest expenses.
+    recent_expenses = (
+        Transaction.objects
+        .filter(user=request.user)
+        .select_related('category')
+        .order_by('-date', '-id')
+    )
+
+    # Analytics queryset can be filtered independently.
+    analytics_expenses = (
+        Transaction.objects
+        .filter(user=request.user)
+        .select_related('category')
+        .order_by('-date', '-id')
+    )
 
     if selected_category_id:
         try:
-            # CHANGES: Filter transactions by the selected category ID
-            expenses = expenses.filter(category__id=selected_category_id)
-        except ValueError:
-            pass # Handle invalid selected_category_id gracefully
+            selected_category_id = int(selected_category_id)
+
+            analytics_expenses = analytics_expenses.filter(
+                category__id=selected_category_id,
+                category__user=request.user,
+                category__type='expense'
+            )
+        except (TypeError, ValueError):
+            selected_category_id = ''
 
     if group_by == 'weekly':
-        expenses_grouped = expenses.annotate(period=TruncWeek('date'))
+        expenses_grouped = analytics_expenses.annotate(
+            period=TruncWeek('date')
+        )
     elif group_by == 'yearly':
-        expenses_grouped = expenses.annotate(period=TruncYear('date'))
-    else: # Default to monthly
-        expenses_grouped = expenses.annotate(period=TruncMonth('date'))
+        expenses_grouped = analytics_expenses.annotate(
+            period=TruncYear('date')
+        )
+    else:
+        expenses_grouped = analytics_expenses.annotate(
+            period=TruncMonth('date')
+        )
 
     grouped_totals = (
         expenses_grouped
         .values('period')
-        .annotate(total=Sum('amount'))
+        .annotate(total=DjangoSum('amount'))
         .order_by('period')
     )
 
@@ -1014,17 +1570,92 @@ def add_expense_view(request):
             labels.append(str(item['period'].year))
         values.append(float(item['total']))
 
-    # CHANGES: Fetch user-defined expense categories for the dropdown filter
-    all_expense_categories = Category.objects.filter(user=request.user, type='expense').order_by('name')
+    # User-owned expense categories only
+    has_chart_data = bool(values)
+
+    all_expense_categories = (
+        Category.objects
+        .filter(user=request.user, type='expense')
+        .order_by('name')
+    )
+
+    # ---------------------------------------------------------
+    # Command-center analytics
+    # ---------------------------------------------------------
+
+    from django.db.models import Q, Count
+
+    current_month = timezone.now().date().replace(day=1)
+
+    # Combine total expenses, current-month expenses,
+    # and expense count into a single database query.
+    expense_metrics = Transaction.objects.filter(
+        user=request.user
+    ).aggregate(
+        total=DjangoSum('amount'),
+        monthly=DjangoSum(
+            'amount',
+            filter=Q(date__gte=current_month)
+        ),
+        count=Count('id'),
+    )
+
+    total_expenses = (
+        expense_metrics['total']
+        or Decimal('0.00')
+    )
+
+    monthly_expenses = (
+        expense_metrics['monthly']
+        or Decimal('0.00')
+    )
+
+    expense_count = expense_metrics['count']
+
+    top_category = (
+        Transaction.objects
+        .filter(
+            user=request.user,
+            category__isnull=False
+        )
+        .values('category__name')
+        .annotate(total=DjangoSum('amount'))
+        .order_by('-total')
+        .first()
+    )
+
+    top_category_name = (
+        top_category['category__name']
+        if top_category
+        else 'No spending yet'
+    )
+
+    top_category_total = (
+        top_category['total']
+        if top_category
+        else Decimal('0.00')
+    )
 
     return render(request, 'home/add_expense.html', {
-        'form': form, # CHANGES: Pass the form instance to the template
-        'expenses': expenses[:5], # Display only a few recent ones
-        'category_labels': json.dumps(labels), # Chart labels
-        'category_values': json.dumps(values), # Chart data
-        'all_expense_categories': all_expense_categories, # CHANGES: Pass categories for filtering dropdown
-        'selected_category_id': selected_category_id, # Keep selected category in dropdown
-        'group_by': group_by, # Keep selected grouping in dropdown
+        'form': form,
+        'expenses': recent_expenses[:5],
+
+        # Existing chart functionality
+        'category_labels': json.dumps(labels),
+        'category_values': json.dumps(values),
+        'has_chart_data': has_chart_data,
+
+        # Existing category functionality
+        'all_expense_categories': all_expense_categories,
+        'selected_category_id': selected_category_id,
+        'group_by': group_by,
+
+        # New UI analytics
+        'total_expenses': total_expenses,
+        'monthly_expenses': monthly_expenses,
+        'expense_count': expense_count,
+        'top_category_name': top_category_name,
+        'top_category_total': top_category_total,
     })
 
 @login_required
@@ -1047,7 +1678,10 @@ def edit_expense_view(request, expense_id):
         form = TransactionForm(instance=expense, request=request)
 
     # CHANGES: Fetch user-defined expense categories for the dropdown
-    all_expense_categories = Category.objects.filter(user=request.user, type='expense').order_by('name')
+    all_expense_categories = Category.objects.filter(
+        user=request.user,
+        type='expense'
+    ).order_by('name')
     return render(request, 'home/edit_expense.html', {
         'form': form, # CHANGES: Pass the form instance to the template
         'expense': expense, # Pass the expense object for context
@@ -1056,16 +1690,24 @@ def edit_expense_view(request, expense_id):
 
 @login_required
 def delete_expense_view(request, expense_id):
-    """
-    Handles deleting an existing expense.
-    """
-    expense = get_object_or_404(Transaction, id=expense_id, user=request.user)
-    if request.method == 'POST':
-        expense.delete()
-        messages.success(request, 'Expense deleted successfully!')
-    return redirect('add_expense') # Redirect back to the add/list page
+    expense = get_object_or_404(
+        Transaction,
+        id=expense_id,
+        user=request.user
+    )
 
-@login_required
+    if request.method != 'POST':
+        return redirect('add_expense')
+
+    expense.delete()
+
+    messages.success(
+        request,
+        'Expense deleted successfully!'
+    )
+
+    return redirect('add_expense')
+
 def edit_income_view(request, income_id):
     """
     Handles editing an existing income, integrated with user-defined categories.
@@ -1180,11 +1822,95 @@ def add_income_view(request):
 @login_required
 def view_all_transactions(request):
     """
-    Displays all transactions for the logged-in user.
+    Displays the logged-in user's transactions with search,
+    filtering, sorting, pagination, and summary statistics.
     """
-    transactions = Transaction.objects.filter(user=request.user).order_by('-date')
+
+    # Base queryset — always restricted to the authenticated user.
+    transactions = (
+        Transaction.objects
+        .filter(user=request.user)
+        .select_related('category')
+    )
+
+    # Search
+    search_query = request.GET.get('q', '').strip()
+
+    if search_query:
+        transactions = transactions.filter(
+            Q(description__icontains=search_query) |
+            Q(category__name__icontains=search_query)
+        )
+
+    # Category filter
+    category_id = request.GET.get('category', '').strip()
+
+    if category_id:
+        try:
+            transactions = transactions.filter(category_id=int(category_id))
+        except (TypeError, ValueError):
+            category_id = ''
+
+    # Date filters
+    date_from = request.GET.get('date_from', '').strip()
+    date_to = request.GET.get('date_to', '').strip()
+
+    if date_from:
+        transactions = transactions.filter(date__gte=date_from)
+
+    if date_to:
+        transactions = transactions.filter(date__lte=date_to)
+
+    # Sorting
+    sort = request.GET.get('sort', 'date_desc')
+
+    sort_options = {
+        'date_desc': '-date',
+        'date_asc': 'date',
+        'amount_desc': '-amount',
+        'amount_asc': 'amount',
+        'description': 'description',
+    }
+
+    order_by = sort_options.get(sort, '-date')
+
+    transactions = transactions.order_by(order_by, '-created_at')
+
+    # Summary statistics for the currently filtered dataset.
+    filtered_count = transactions.count()
+
+    filtered_total = (
+        transactions.aggregate(total=Sum('amount'))['total']
+        or Decimal('0.00')
+    )
+
+    # Pagination
+    paginator = Paginator(transactions, 10)
+
+    page_number = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page_number)
+
+    # User-owned categories for the filter dropdown.
+    categories = (
+        Category.objects
+        .filter(user=request.user, type='expense')
+        .order_by('name')
+    )
+
     return render(request, 'home/view_all_transactions.html', {
-        'transactions': transactions
+        'transactions': page_obj,
+        'page_obj': page_obj,
+        'paginator': paginator,
+        'categories': categories,
+
+        'search_query': search_query,
+        'category_id': category_id,
+        'date_from': date_from,
+        'date_to': date_to,
+        'sort': sort,
+
+        'filtered_count': filtered_count,
+        'filtered_total': filtered_total,
     })
 
 @login_required
@@ -1383,6 +2109,8 @@ def contact_view(request):
 
 @login_required
 def logout_view(request):
+    # Clear stale messages from previous pages before logging out.
+    list(messages.get_messages(request))
     logout(request)
     messages.success(request, 'Logged out successfully!')
     return redirect('login')

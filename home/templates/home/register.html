@@ -69,16 +69,53 @@
         </div>
         {% endif %}
 
-        <form method="POST" class="space-y-6 mt-5">
+        <form method="POST" class="space-y-5 mt-5" novalidate>
           {% csrf_token %}
-          {{ form.username|add_class:"input-glow w-full pl-12 pr-4 py-3 rounded-xl bg-white/15 border border-white/20 text-white placeholder-gray-200 outline-none focus:ring-2 focus:ring-emerald-400/70 focus:border-emerald-400 shadow-sm transition duration-300 font-medium"|attr:"placeholder:Username" }}
-          {{ form.email|add_class:"input-glow w-full pl-12 pr-4 py-3 rounded-xl bg-white/15 border border-white/20 text-white placeholder-gray-200 outline-none focus:ring-2 focus:ring-cyan-400/70 focus:border-cyan-400 shadow-sm transition duration-300 font-medium"|attr:"placeholder:Email" }}
-          {{ form.password|add_class:"input-glow w-full pl-12 pr-4 py-3 rounded-xl bg-white/15 border border-white/20 text-white placeholder-gray-200 outline-none focus:ring-2 focus:ring-emerald-400/70 focus:border-emerald-400 shadow-sm transition duration-300 font-medium"|attr:"placeholder:Password" }}
-          {{ form.confirm_password|add_class:"input-glow w-full pl-12 pr-4 py-3 rounded-xl bg-white/15 border border-white/20 text-white placeholder-gray-200 outline-none focus:ring-2 focus:ring-emerald-400/70 focus:border-emerald-400 shadow-sm transition duration-300 font-medium"|attr:"placeholder:Confirm Password" }}
+
+          {% if form.non_field_errors %}
+            <div role="alert" class="rounded-xl border border-rose-300/30 bg-rose-500/15 px-4 py-3 text-sm text-rose-100">
+              {% for error in form.non_field_errors %}
+                <p>{{ error }}</p>
+              {% endfor %}
+            </div>
+          {% endif %}
+
+          <div>
+            <label for="{{ form.username.id_for_label }}" class="mb-2 block text-sm font-semibold text-gray-100">Username</label>
+            {{ form.username|add_class:"input-glow w-full px-4 py-3 rounded-xl bg-white/15 border border-white/20 text-white placeholder-gray-200 outline-none focus:ring-2 focus:ring-emerald-400/70 focus:border-emerald-400 shadow-sm transition duration-300 font-medium"|attr:"placeholder:Choose a username"|attr:"autocomplete:username"|attr:"required:true" }}
+            {% for error in form.username.errors %}
+              <p role="alert" class="mt-2 text-sm text-rose-200">{{ error }}</p>
+            {% endfor %}
+          </div>
+
+          <div>
+            <label for="{{ form.email.id_for_label }}" class="mb-2 block text-sm font-semibold text-gray-100">Email address</label>
+            {{ form.email|add_class:"input-glow w-full px-4 py-3 rounded-xl bg-white/15 border border-white/20 text-white placeholder-gray-200 outline-none focus:ring-2 focus:ring-cyan-400/70 focus:border-cyan-400 shadow-sm transition duration-300 font-medium"|attr:"placeholder:you@example.com"|attr:"autocomplete:email"|attr:"required:true" }}
+            {% for error in form.email.errors %}
+              <p role="alert" class="mt-2 text-sm text-rose-200">{{ error }}</p>
+            {% endfor %}
+          </div>
+
+          <div>
+            <label for="{{ form.password.id_for_label }}" class="mb-2 block text-sm font-semibold text-gray-100">Password</label>
+            {{ form.password|add_class:"input-glow w-full px-4 py-3 rounded-xl bg-white/15 border border-white/20 text-white placeholder-gray-200 outline-none focus:ring-2 focus:ring-emerald-400/70 focus:border-emerald-400 shadow-sm transition duration-300 font-medium"|attr:"placeholder:Create a strong password"|attr:"autocomplete:new-password"|attr:"required:true" }}
+            <p class="mt-2 text-xs leading-relaxed text-gray-300">Choose a password that meets the security requirements shown if validation fails.</p>
+            {% for error in form.password.errors %}
+              <p role="alert" class="mt-2 text-sm text-rose-200">{{ error }}</p>
+            {% endfor %}
+          </div>
+
+          <div>
+            <label for="{{ form.confirm_password.id_for_label }}" class="mb-2 block text-sm font-semibold text-gray-100">Confirm password</label>
+            {{ form.confirm_password|add_class:"input-glow w-full px-4 py-3 rounded-xl bg-white/15 border border-white/20 text-white placeholder-gray-200 outline-none focus:ring-2 focus:ring-cyan-400/70 focus:border-cyan-400 shadow-sm transition duration-300 font-medium"|attr:"placeholder:Enter your password again"|attr:"autocomplete:new-password"|attr:"required:true" }}
+            {% for error in form.confirm_password.errors %}
+              <p role="alert" class="mt-2 text-sm text-rose-200">{{ error }}</p>
+            {% endfor %}
+          </div>
 
           <button type="submit"
             class="w-full py-3 rounded-xl font-bold text-lg bg-gradient-to-br from-emerald-500 via-cyan-400 to-blue-600 hover:from-cyan-500 hover:to-emerald-600 hover:scale-[1.03] transition-all duration-200 ease-linear text-white shadow-lg shadow-cyan-500/15 focus:outline-none focus:ring-4 focus:ring-cyan-400/60 focus:ring-offset-2 active:scale-95">
-            Register
+            Create Account
           </button>
         </form>
 

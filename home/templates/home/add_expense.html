@@ -1,415 +1,764 @@
+{% extends 'home/base.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Add Expense - Personal Finance Tracker</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.3.0/flowbite.min.css" rel="stylesheet" />
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.3.0/dist/chart.umd.min.js"></script>
-  <style>
-    body {
-      font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: #131b30;
-      min-height: 100vh;
-      color: #f1f5f9;
-      overflow-x: hidden; /* Added to prevent horizontal scroll from blobs */
-    }
-    .blob-bg {
-      pointer-events: none;
-      z-index: 0;
-    }
-    .glass-card {
-      background: rgba(255,255,255,0.10);
-      -webkit-backdrop-filter: blur(18px);
-      backdrop-filter: blur(18px);
-      border-radius: 1.2rem;
-      border: 1.3px solid rgba(255,255,255,0.15);
-      box-shadow: 0 8px 32px 0 rgba(16,56,96,0.09), 0 2px 10px 0 rgba(30,64,175,0.03);
-      transition: box-shadow 0.22s, transform 0.16s;
-    }
-    .glass-card:hover, .glass-card:focus-within {
-      box-shadow: 0 10px 38px 0 #38bdf84d, 0 10px 38px 0 #2563eb13;
-      transform: translateY(-1.5px) scale(1.025);
-    }
-    /* Styles for category buttons */
-    .category-button {
-      background: rgba(255,255,255,0.07);
-      border: 1.3px solid #38bdf880;
-      color: #38bdf8;
-      transition: all .15s;
-    }
-    .category-button:hover {
-      background: linear-gradient(90deg,#38bdf8 22%,#6366f1 86%);
-      color:#fff;
-      border-color:#6366f1;
-    }
-    .category-button.selected, .category-button.bg-sky-600 { /* Keep bg-sky-600 for initial selection */
-      background: linear-gradient(90deg,#0ea5e9 38%,#10b981 120%);
-      color:#fff!important; /* Important to override tailwind classes */
-      border:2px solid #0ea5e999;
-      box-shadow:0 2px 12px #38bdf841;
-    }
 
-    /* Scrollbar for category slider */
-    .category-slider::-webkit-scrollbar {
-      height:8px;
-    }
-    .category-slider::-webkit-scrollbar-thumb {
-      background:#475569; /* Matched with home.html general scrollbar thumb */
-      border-radius:5px;
-    }
-    .category-slider::-webkit-scrollbar-track { /* Added track style for consistency */
-      background:#1e293b;
-    }
+{% block title %}Add Expense | FinTrack{% endblock %}
 
-    /* Form input and select styles */
-    .form-section input, .form-section select {
-      background:rgba(255,255,255,0.18);
-      color:#fff;
-      border:1.4px solid #38bdf8;
-      border-radius:.95rem;
-      box-shadow:0 2px 10px rgba(30,41,59,0.1); /* Adjusted shadow for consistency */
-      transition: border 0.22s, box-shadow 0.19s, background 0.25s;
-    }
-    .form-section input:focus, .form-section select:focus {
-      border-color:#0ea5e9;
-      box-shadow:0 0 0 2.5px #0ea5e978;
-      background:rgba(30,41,59,0.16);
-    }
-    select,option {
-      color-scheme:dark;
-      background:#19213a!important;
-      color:#38bdf8!important;
-      font-weight:bold;
-    }
-    /* Table styles */
-    .custom-table thead th { /* Renamed from expense-list-section table th to custom-table */
-      position: sticky; top:0; z-index:3;
-      background:#0284c7e6; /* bg-sky-700 with opacity */
-    }
-    .custom-table tbody tr:nth-child(even) { /* Renamed */
-      background-color:#f1f5f935;
-    }
-    .custom-table tbody tr:hover { /* Renamed */
-      background: #f7fee7cc;
-    }
-    .custom-table th, .custom-table td { /* General cell color */
-        color:#f1f5f9;
-    }
+{% block content %}
 
-    /* Action buttons in table */
-    .edit-btn {
-      background:linear-gradient(90deg,#38bdf8,#0ea5e9 86%);
-    }
-    .edit-btn:hover {
-      background:linear-gradient(90deg,#0ea5e9,#38bdf8 86%);
-    }
-    .delete-btn {
-      background:linear-gradient(90deg,#ef4444,#be123c 97%);
-    }
-    .delete-btn:hover {
-      background:linear-gradient(90deg,#be123c,#ef4444 88%);
-    }
+<div class="ft-management-page">
 
-    /* Media Queries for responsiveness */
-    @media (max-width:1024px){
-      .container{flex-direction:column !important;}
-      .form-section,.graph-section{width:100%!important;}
-    }
-    @media (max-width:600px){
-      .glass-card {padding:1rem;}
-      h1, h2 {font-size: 2rem !important;} /* Make headings smaller on small screens */
-    }
+    <!-- =====================================================
+         PAGE HEADER
+         ===================================================== -->
+    <header class="ft-management-header">
 
-    /* Keyframe animations for blobs (from Tailwind config or custom CSS) */
-    @keyframes blob-1 {
-      0%, 100% { transform: translate(0, 0) scale(1); }
-      30% { transform: translate(-30px, 40px) scale(1.1); }
-      60% { transform: translate(-20px, -20px) scale(0.9); }
-    }
-    @keyframes blob-2 {
-      0%, 100% { transform: translate(0, 0) scale(1); }
-      40% { transform: translate(50px, -30px) scale(1.2); }
-      70% { transform: translate(20px, 20px) scale(0.8); }
-    }
-    @keyframes blob-3 {
-      0%, 100% { transform: translate(0, 0) scale(1); }
-      50% { transform: translate(-40px, -50px) scale(1.1); }
-      80% { transform: translate(30px, 10px) scale(0.95); }
-    }
-    .animate-blob-1 { animation: blob-1 10s ease-in-out infinite alternate; }
-    .animate-blob-2 { animation: blob-2 12s ease-in-out infinite alternate-reverse; }
-    .animate-blob-3 { animation: blob-3 11s ease-in-out infinite alternate; }
-  </style>
-</head>
-<body class="min-h-screen flex flex-col relative bg-[#131b30] overflow-x-hidden">
+        <div>
+            <span class="ft-eyebrow">FINANCE</span>
 
-<div aria-hidden="true" class="fixed inset-0 z-0 blob-bg pointer-events-none select-none">
-  <div class="absolute w-72 h-72 bg-emerald-400/60 rounded-full mix-blend-screen blur-3xl animate-blob-1 top-[7%] left-[9%]"></div>
-  <div class="absolute w-[27rem] h-[22rem] bg-sky-400/60 rounded-full mix-blend-screen blur-3xl animate-blob-2 top-[71%] right-[3%]"></div>
-  <div class="absolute w-64 h-64 bg-fuchsia-500/50 rounded-full mix-blend-screen blur-3xl animate-blob-3 bottom-[8%] left-[45%]"></div>
-</div>
+            <h1>Add Expense</h1>
 
-<div class="fixed w-full top-0 z-10 left-0 right-0 bg-white/10 backdrop-blur-md shadow-sm border-b border-white/10">
-  <nav class="container mx-auto px-3 sm:px-6 lg:px-8 flex justify-between items-center py-4">
-    <div class="flex-shrink-0">
-      <a href="{% url 'home' %}" class="flex items-center space-x-2">
-        <img src="{% static 'home/images/logo.png' %}" alt="FinTrack Logo" class="h-10 w-auto" loading="lazy"/>
-        <span class="text-2xl font-bold text-white drop-shadow-md">FinTrack</span>
-      </a>
-    </div>
-    <div class="hidden md:flex flex-grow justify-center" aria-label="Main Navigation">
-      <ul class="flex space-x-8 text-lg font-medium">
-        <li><a href="{% url 'home' %}" class="text-white hover:text-sky-200 transition-colors duration-300 ease-in-out px-3 py-2 rounded-md">Home</a></li>
-        <li><a href="{% url 'about' %}" class="text-white hover:text-sky-200 transition-colors duration-300 ease-in-out px-3 py-2 rounded-md">About</a></li>
-        <li><a href="{% url 'services' %}" class="text-white hover:text-sky-200 transition-colors duration-300 ease-in-out px-3 py-2 rounded-md">Services</a></li>
-        <li><a href="{% url 'contact' %}" class="text-white hover:text-sky-200 transition-colors duration-300 ease-in-out px-3 py-2 rounded-md">Contact</a></li>
-      </ul>
-    </div>
-    <div class="flex items-center space-x-4">
-      {% if request.user.is_authenticated %}
-      <div class="relative">
-        <button type="button" class="flex items-center gap-x-1.5 rounded-md px-4 py-2 text-md font-semibold text-white bg-sky-600 hover:bg-sky-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-sky-700 focus:ring-sky-300 transition-all duration-200" id="user-menu-button" aria-expanded="false" aria-haspopup="true">
-          <i class="fas fa-user-circle fa-lg mr-1"></i>
-          {{ request.user.username }}
-          <svg class="-mr-1 h-5 w-5 text-gray-200" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-            <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.25 4.25a.75.75 0 01-1.06 0L5.21 8.29a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
-          </svg>
-        </button>
-        <div class="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none hidden" role="menu" aria-orientation="vertical" aria-labelledby="user-menu-button" tabindex="-1" id="user-dropdown">
-          <div class="py-1" role="none">
-            <a href="{% url 'view_profile' %}" class="text-gray-700 block px-4 py-2 text-sm hover:bg-gray-100 hover:text-gray-900 transition-colors duration-200" role="menuitem" tabindex="-1">
-              <i class="fas fa-id-card mr-2"></i> View Profile
-            </a>
-            <a href="{% url 'logout' %}" class="text-gray-700 block px-4 py-2 text-sm hover:bg-gray-100 hover:text-gray-900 transition-colors duration-200" role="menuitem" tabindex="-1">
-              <i class="fas fa-sign-out-alt mr-2"></i> Logout
-            </a>
-          </div>
+            <p>
+                Record your spending and understand where your money goes.
+            </p>
         </div>
-      </div>
-      {% else %}
-      <a href="{% url 'login' %}" class="bg-sky-600 hover:bg-sky-500 text-white font-bold py-2 px-6 rounded-full transition-all duration-300 ease-in-out shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-sky-300 focus:ring-offset-2 focus:ring-offset-sky-700">
-        Login
-      </a>
-      {% endif %}
-      <div class="-mr-2 flex md:hidden">
-        <button type="button" class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-white hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white" aria-controls="mobile-menu" aria-expanded="false" id="mobile-menu-button">
-          <span class="sr-only">Open main menu</span>
-          <svg class="block h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
-          </svg>
-          <svg class="hidden h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
-      </div>
-    </div>
-  </nav>
-  <div class="md:hidden hidden" id="mobile-menu">
-    <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-      <a href="{% url 'home' %}" class="text-gray-300 hover:bg-gray-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium">Home</a>
-      <a href="{% url 'about' %}" class="text-gray-300 hover:bg-gray-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium">About</a>
-      <a href="{% url 'services' %}" class="text-gray-300 hover:bg-gray-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium">Services</a>
-      <a href="{% url 'contact' %}" class="text-gray-300 hover:bg-gray-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium">Contact</a>
-    </div>
-  </div>
-</div>
-<div class="container mx-auto px-4 sm:px-6 lg:px-8 py-16 flex flex-col lg:flex-row gap-10 z-10 relative mt-20">
-  <div class="form-section glass-card w-full lg:w-1/2 rounded-xl p-7">
-    <h1 class="text-3xl font-extrabold text-white mb-7 tracking-tight">Add New Expense</h1>
-    <form method="POST">
-      {% csrf_token %}
-      <label for="description" class="block text-sky-200 font-semibold mb-2 mt-4">Description:</label>
-      <input type="text" id="description" name="description" required class="w-full px-4 py-2"/>
-      <label for="amount" class="block text-sky-200 font-semibold mb-2 mt-4">Amount:</label>
-      <input type="number" id="amount" name="amount" step="0.01" required class="w-full px-4 py-2"/>
-      <label for="category" class="block text-sky-200 font-semibold mb-2 mt-4">Category:</label>
-      <div class="category-slider flex overflow-x-auto gap-3 py-2 -mx-2 px-2"> {% for cat in predefined_categories %}
-        <button
-          type="button"
-          class="category-button flex-shrink-0 px-4 py-2 border border-sky-200/40 rounded-full cursor-pointer whitespace-nowrap hover:bg-sky-600 hover:text-white transition text-sm font-semibold"
-          onclick="selectCategory('{{ cat }}')"
-        >{{ cat }}</button>
-        {% endfor %}
-      </div>
-      <input type="hidden" id="category" name="category" required />
-      <p id="selected-category" class="mt-3 text-sky-500 font-semibold text-sm">Click a category above</p>
-      <label for="date" class="block text-sky-200 font-semibold mb-2 mt-4">Date:</label>
-      <input type="date" id="date" name="date" required class="w-full px-4 py-2"/>
-      <button type="submit"
-        class="mt-7 w-full py-3 bg-gradient-to-r from-emerald-500 via-sky-500 to-fuchsia-500 text-white font-bold rounded-xl hover:from-sky-500 hover:to-emerald-700 hover:scale-105 transition focus:outline-none focus:ring-4 focus:ring-emerald-300">
-        <i class="fa-solid fa-plus mr-2"></i> Add Expense
-      </button>
-    </form>
-  </div>
-  <div class="graph-section glass-card w-full lg:w-1/2 rounded-xl p-7">
-    <h2 class="text-3xl font-extrabold text-white mb-7 tracking-tight">Expense Summary</h2>
-    <form method="get" id="grouping-form" class="mb-6">
-      <label for="groupBy" class="block text-sky-200 font-semibold mb-2">Group By:</label>
-      <select name="group_by" id="groupBy" onchange="document.getElementById('grouping-form').submit()" class="block w-full md:w-auto px-4 py-2 bg-[#19213a] text-sky-400 font-bold">
-        <option value="weekly" {% if group_by == 'weekly' %}selected{% endif %}>Weekly</option>
-        <option value="monthly" {% if group_by == 'monthly' %}selected{% endif %}>Monthly</option>
-        <option value="yearly" {% if group_by == 'yearly' %}selected{% endif %}>Yearly</option>
-      </select>
-    </form>
-    <div class="h-[300px] flex items-center justify-center">
-      <canvas id="expenseChart"></canvas>
-    </div>
-  </div>
-</div>
 
-<div class="expense-list-section container mx-auto px-4 sm:px-6 lg:px-8 py-12 mt-9 z-10">
-  <h2 class="text-3xl font-extrabold text-white mb-7 tracking-tight">All Expenses</h2>
-  <div class="overflow-x-auto glass-card rounded-xl">
-    <table class="min-w-full custom-table divide-y divide-gray-200"> <thead>
-        <tr>
-          <th class="p-4 text-left text-sm font-semibold uppercase tracking-wider">Description</th>
-          <th class="p-4 text-left text-sm font-semibold uppercase tracking-wider">Amount</th>
-          <th class="p-4 text-left text-sm font-semibold uppercase tracking-wider">Category</th>
-          <th class="p-4 text-left text-sm font-semibold uppercase tracking-wider">Date</th>
-          <th class="p-4 text-left text-sm font-semibold uppercase tracking-wider">Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for expense in expenses %}
-        <tr>
-          <td class="p-4 whitespace-nowrap text-slate-200">{{ expense.description }}</td> <td class="p-4 whitespace-nowrap font-medium text-rose-400">${{ expense.amount }}</td>
-          <td class="p-4 whitespace-nowrap text-sky-300">{{ expense.category }}</td>
-          <td class="p-4 whitespace-nowrap text-slate-200">{{ expense.date }}</td> <td class="p-4 whitespace-nowrap">
-            <div class="action-buttons flex gap-2">
-              <a href="{% url 'edit_expense' expense.id %}" class="edit-btn inline-flex items-center px-4 py-2 rounded-lg text-white font-medium text-sm">
-                <i class="fa-solid fa-pen-to-square mr-1"></i> Edit
-              </a>
-              <form action="{% url 'delete_expense' expense.id %}" method="POST" class="inline-block">
-                {% csrf_token %}
-                <button type="submit" class="delete-btn inline-flex items-center px-4 py-2 rounded-lg text-white font-medium text-sm">
-                  <i class="fa-solid fa-trash mr-1"></i> Delete
-                </button>
-              </form>
+        <a href="{% url 'view_all_transactions' %}"
+           class="ft-btn ft-btn-secondary">
+            <i class="fa-solid fa-list"></i>
+            View Transactions
+        </a>
+
+    </header>
+
+
+    <!-- =====================================================
+         MAIN WORKSPACE
+         ===================================================== -->
+    <section class="ft-workspace">
+
+        <!-- ================= FORM ================= -->
+        <div class="ft-workspace-card ft-form-card">
+
+            <div class="ft-card-header">
+
+                <div>
+                    <span class="ft-card-kicker">
+                        NEW TRANSACTION
+                    </span>
+
+                    <h2>Add New Expense</h2>
+
+                    <p>
+                        Enter the details of your expense below.
+                    </p>
+                </div>
+
+                <div class="ft-card-icon ft-expense-icon">
+                    <i class="fa-solid fa-arrow-down"></i>
+                </div>
+
             </div>
-          </td>
-        </tr>
-        {% empty %}
-        <tr>
-          <td colspan="5" class="p-6 text-center text-gray-500 text-lg">No expenses found.</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
+
+
+            <form method="POST"
+                  class="ft-expense-form"
+                  id="expense-form">
+
+                {% csrf_token %}
+
+
+                <!-- Description -->
+                <div class="ft-form-field">
+
+                    <label for="description">
+                        Description
+                    </label>
+
+                    <input
+                        type="text"
+                        id="description"
+                        name="description"
+                        placeholder="e.g. Grocery shopping"
+                        value="{{ form.description.value|default:'' }}"
+                        required
+                        autocomplete="off"
+                    >
+
+                    {% if form.description.errors %}
+                        <div class="ft-field-error">
+                            {{ form.description.errors|striptags }}
+                        </div>
+                    {% endif %}
+
+                </div>
+
+
+                <!-- Amount -->
+                <div class="ft-form-field">
+
+                    <label for="amount">
+                        Amount
+                    </label>
+
+                    <div>
+
+
+
+                        <input
+                            type="number"
+                            id="amount"
+                            name="amount"
+                            placeholder="0.00"
+                            step="0.01"
+                            min="0"
+                            value="{{ form.amount.value|default:'' }}"
+                            required
+                        >
+
+                    </div>
+
+                    {% if form.amount.errors %}
+                        <div class="ft-field-error">
+                            {{ form.amount.errors|striptags }}
+                        </div>
+                    {% endif %}
+
+                </div>
+
+
+                <!-- Category -->
+                <div class="ft-form-field">
+
+                    <div class="ft-field-heading">
+
+                        <label>
+                            Category
+                        </label>
+
+                        <span id="selected-category"
+                              class="ft-selection-status">
+                            Select a category
+                        </span>
+
+                    </div>
+
+
+                    <div class="ft-category-slider"
+                         id="category-slider">
+
+                        {% for cat in form.category.field.queryset %}
+
+                            <button
+                                type="button"
+                                class="ft-category-chip"
+                                data-category-id="{{ cat.id }}"
+                                data-category-name="{{ cat.name|escapejs }}"
+                                onclick="selectCategory('{{ cat.id }}', '{{ cat.name|escapejs }}')"
+                            >
+                                {{ cat.name }}
+                            </button>
+
+                        {% empty %}
+
+                            <span class="ft-empty-inline">
+                                No expense categories available.
+                            </span>
+
+                        {% endfor %}
+
+                    </div>
+
+
+                    <input
+                        type="hidden"
+                        id="category"
+                        name="category"
+                        value="{{ form.category.value|default:'' }}"
+                        required
+                    >
+
+                    {% if form.category.errors %}
+                        <div class="ft-field-error">
+                            {{ form.category.errors|striptags }}
+                        </div>
+                    {% endif %}
+
+                </div>
+
+
+                <!-- Date -->
+                <div class="ft-form-field">
+
+                    <label for="date">
+                        Date
+                    </label>
+
+                    <input
+                        type="date"
+                        id="date"
+                        name="date"
+                        value="{{ form.date.value|default:'' }}"
+                        required
+                    >
+
+                    {% if form.date.errors %}
+                        <div class="ft-field-error">
+                            {{ form.date.errors|striptags }}
+                        </div>
+                    {% endif %}
+
+                </div>
+
+
+                <!-- Submit -->
+                <button type="submit"
+                        class="ft-primary-submit">
+
+                    <span>
+                        <i class="fa-solid fa-plus"></i>
+                    </span>
+
+                    Add Expense
+
+                </button>
+
+            </form>
+
+        </div>
+
+
+        <!-- ================= ANALYTICS ================= -->
+        <div class="ft-workspace-card ft-chart-card">
+
+            <div class="ft-card-header">
+
+                <div>
+                    <span class="ft-card-kicker">
+                        SPENDING ANALYTICS
+                    </span>
+
+                    <h2>Expense Overview</h2>
+
+                    <p>
+                        Track your spending trend over time.
+                    </p>
+                </div>
+
+                <div class="ft-card-icon">
+                    <i class="fa-solid fa-chart-column"></i>
+                </div>
+
+            </div>
+
+
+            <form method="GET"
+                  id="grouping-form"
+                  class="ft-chart-controls">
+
+                <div>
+                    <label for="expenseCategory">
+                        Category
+                    </label>
+
+                    <select
+                        name="selected_category_id"
+                        id="expenseCategory"
+                        onchange="document.getElementById('grouping-form').submit()"
+                    >
+                        <option value="">
+                            All Categories
+                        </option>
+
+                        {% for category in all_expense_categories %}
+                            <option
+                                value="{{ category.id }}"
+                                {% if selected_category_id|stringformat:"s" == category.id|stringformat:"s" %}selected{% endif %}
+                            >
+                                {{ category.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div>
+
+                    <label for="groupBy">
+                        View period
+                    </label>
+
+                    <select
+                        name="group_by"
+                        id="groupBy"
+                        onchange="document.getElementById('grouping-form').submit()"
+                    >
+                        <option value="weekly"
+                            {% if group_by == 'weekly' %}selected{% endif %}>
+                            Weekly
+                        </option>
+
+                        <option value="monthly"
+                            {% if group_by == 'monthly' %}selected{% endif %}>
+                            Monthly
+                        </option>
+
+                        <option value="yearly"
+                            {% if group_by == 'yearly' %}selected{% endif %}>
+                            Yearly
+                        </option>
+                    </select>
+
+                </div>
+
+            </form>
+
+
+            <div class="ft-chart-wrapper">
+
+                {% if has_chart_data %}
+                    <canvas id="expenseChart"></canvas>
+                {% else %}
+                    <div class="ft-chart-empty">
+
+                        <div class="ft-chart-empty-icon">
+                            <i class="fa-solid fa-chart-column"></i>
+                        </div>
+
+                        <h3>No spending data yet</h3>
+
+                        <p>
+                            Add your first expense to start seeing
+                            spending trends here.
+                        </p>
+
+                    </div>
+                {% endif %}
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         RECENT EXPENSES
+         ===================================================== -->
+    <section class="ft-list-section">
+
+        <div class="ft-section-heading">
+
+            <div>
+                <span class="ft-eyebrow">ACTIVITY</span>
+
+                <h2>Recent Expenses</h2>
+
+                <p>
+                    Your latest recorded expenses.
+                </p>
+            </div>
+
+            <a href="{% url 'view_all_transactions' %}"
+               class="ft-text-link">
+                View all
+                <i class="fa-solid fa-arrow-right"></i>
+            </a>
+
+        </div>
+
+
+        <div class="ft-table-card">
+
+            {% if expenses %}
+
+                <div class="ft-table-scroll">
+
+                    <table class="ft-management-table">
+
+                        <thead>
+
+                            <tr>
+                                <th>Description</th>
+                                <th>Amount</th>
+                                <th>Category</th>
+                                <th>Date</th>
+                                <th class="ft-actions-column">
+                                    Actions
+                                </th>
+                            </tr>
+
+                        </thead>
+
+                        <tbody>
+
+                            {% for expense in expenses %}
+
+                                <tr>
+
+                                    <td>
+
+                                        <div class="ft-description-cell">
+
+                                            <span class="ft-row-icon">
+                                                <i class="fa-solid fa-receipt"></i>
+                                            </span>
+
+                                            <span>
+                                                {{ expense.description }}
+                                            </span>
+
+                                        </div>
+
+                                    </td>
+
+
+                                    <td>
+                                        <strong class="ft-expense-amount">
+                                            ₹{{ expense.amount|floatformat:2 }}
+                                        </strong>
+                                    </td>
+
+
+                                    <td>
+
+                                        <span class="ft-category-badge">
+                                            {{ expense.category }}
+                                        </span>
+
+                                    </td>
+
+
+                                    <td>
+                                        {{ expense.date|date:"d M Y" }}
+                                    </td>
+
+
+                                    <td>
+
+                                        <div class="ft-row-actions">
+
+                                            <a
+                                                href="{% url 'edit_expense' expense.id %}"
+                                                class="ft-icon-action ft-edit-action"
+                                                title="Edit expense"
+                                                aria-label="Edit expense"
+                                            >
+                                                <i class="fa-solid fa-pen"></i>
+                                            </a>
+
+
+                                            <form
+                                                action="{% url 'delete_expense' expense.id %}"
+                                                method="POST"
+                                                class="ft-inline-form"
+                                                onsubmit="return confirm('Delete this expense?');"
+                                            >
+
+                                                {% csrf_token %}
+
+                                                <button
+                                                    type="submit"
+                                                    class="ft-icon-action ft-delete-action"
+                                                    title="Delete expense"
+                                                    aria-label="Delete expense"
+                                                >
+                                                    <i class="fa-solid fa-trash"></i>
+                                                </button>
+
+                                            </form>
+
+                                        </div>
+
+                                    </td>
+
+                                </tr>
+
+                            {% endfor %}
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            {% else %}
+
+                <div class="ft-empty-state">
+
+                    <div class="ft-empty-state-icon">
+                        <i class="fa-solid fa-receipt"></i>
+                    </div>
+
+                    <h3>No expenses recorded</h3>
+
+                    <p>
+                        Your recent expenses will appear here after
+                        you add your first transaction.
+                    </p>
+
+                    <button
+                        type="button"
+                        class="ft-empty-action"
+                        onclick="document.getElementById('description').focus()"
+                    >
+                        <i class="fa-solid fa-plus"></i>
+                        Add your first expense
+                    </button>
+
+                </div>
+
+            {% endif %}
+
+        </div>
+
+    </section>
+
 </div>
 
-<footer class="bg-slate-900 text-gray-300 text-center py-8 glass-card">
-  <p class="text-sm">
-    &copy; 2024 Personal Finance Tracker. All rights reserved.
-    <a href="#" class="text-sky-300 hover:underline mx-3">Privacy Policy</a> |
-    <a href="#" class="text-sky-300 hover:underline mx-3">Help Center</a> |
-    <a href="#" class="text-sky-300 hover:underline mx-3">Terms of Service</a>
-  </p>
-</footer>
+{% endblock %}
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.3.0/flowbite.min.js"></script>
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'home/css/expense_workspace.css' %}">
+{% endblock %}
+
+
+{% block extra_body_js %}
+
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Navbar JavaScript - copied directly from home.html
-    const userMenuButton = document.getElementById('user-menu-button');
-    const userDropdown = document.getElementById('user-dropdown');
-    const mobileMenuButton = document.getElementById('mobile-menu-button');
-    const mobileMenu = document.getElementById('mobile-menu');
+document.addEventListener("DOMContentLoaded", function () {
 
-    // Toggle user dropdown
-    if (userMenuButton) {
-      userMenuButton.addEventListener('click', function() {
-        const isExpanded = userMenuButton.getAttribute('aria-expanded') === 'true';
-        userMenuButton.setAttribute('aria-expanded', !isExpanded);
-        userDropdown.classList.toggle('hidden');
-      });
-    }
+    /* =====================================================
+       CATEGORY SELECTION
+       ===================================================== */
 
-    // Toggle mobile menu
-    if (mobileMenuButton) {
-      mobileMenuButton.addEventListener('click', function() {
-        const isExpanded = mobileMenuButton.getAttribute('aria-expanded') === 'true';
-        mobileMenuButton.setAttribute('aria-expanded', !isExpanded);
-        mobileMenu.classList.toggle('hidden');
-        mobileMenuButton.children[0].classList.toggle('hidden'); // Icon open
-        mobileMenuButton.children[1].classList.toggle('hidden'); // Icon close
-      });
-    }
+    window.selectCategory = function (categoryId, categoryName) {
 
-    // Close dropdowns if clicked outside
-    window.addEventListener('click', function(event) {
-      if (userDropdown && !userMenuButton.contains(event.target) && !userDropdown.contains(event.target)) {
-        userDropdown.classList.add('hidden');
-        if (userMenuButton) userMenuButton.setAttribute('aria-expanded', false);
-      }
-      // Mobile menu closes only via its button, generally not by clicking outside
-    });
+        const hiddenInput = document.getElementById("category");
+        const selectedText = document.getElementById("selected-category");
 
-    // Add Expense JS
-    const selectedCategoryFromServer = "{{ selected_category|escapejs }}";
-    function selectCategory(category) {
-      document.getElementById("category").value = category;
-      document.getElementById("selected-category").innerText = "Selected: " + category;
-      let buttons = document.querySelectorAll(".category-button");
-      buttons.forEach((btn) => btn.classList.remove("selected", "bg-sky-600", "text-white")); // Ensure all classes are removed
-      let selectedBtn = Array.from(buttons).find((btn) => btn.innerText.trim() === category);
-      if (selectedBtn) selectedBtn.classList.add("selected", "bg-sky-600", "text-white");
-    }
-    // Make selectCategory function globally available
-    window.selectCategory = selectCategory;
+        if (!hiddenInput) return;
 
+        hiddenInput.value = categoryId;
 
-    // Chart.js initialization for expense chart
-    const ctx = document.getElementById("expenseChart").getContext("2d");
-    const labels = JSON.parse("{{ category_labels|escapejs }}");
-    const values = JSON.parse("{{ category_values|escapejs }}");
-    new Chart(ctx, {
-      type: "bar",
-      data: {
-        labels,
-        datasets: [{
-          label: "Expense by Period",
-          data: values,
-          backgroundColor: "rgba(52,152,219,0.8)",
-          borderColor: "rgba(52,152,219,1)",
-          borderWidth: 1,
-          borderRadius: 17,
-          barThickness: 36,
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: {
-          y: {beginAtZero:true, grid:{color:"#33415550"}, ticks:{color:"#f8fafc", font:{weight:'bold'}}},
-          x: {grid:{display:false}, ticks:{color:"#f8fafc", font:{weight:'bold'}}}
-        },
-        plugins: {
-          legend:{display:false},
-          tooltip:{
-            backgroundColor:'rgba(30,41,59,0.97)',
-            titleFont:{size:16,weight:'bold'},
-            bodyFont:{size:14},
-            padding:12,
-            cornerRadius:6,
-            callbacks:{ label:context=>"$"+context.parsed.y },
-          }
+        if (selectedText) {
+            selectedText.textContent = "Selected: " + categoryName;
         }
-      }
+
+        document.querySelectorAll(".ft-category-chip").forEach(function (button) {
+
+            button.classList.remove("is-selected");
+
+        });
+
+        const selectedButton = document.querySelector(
+            '.ft-category-chip[data-category-id="' + categoryId + '"]'
+        );
+
+        if (selectedButton) {
+            selectedButton.classList.add("is-selected");
+        }
+
+    };
+
+
+    /* =====================================================
+       RESTORE SELECTED CATEGORY
+       ===================================================== */
+
+    const selectedCategoryId =
+        "{{ form.category.value|default:''|escapejs }}";
+
+    if (selectedCategoryId) {
+
+        const selectedButton = document.querySelector(
+            '.ft-category-chip[data-category-id="' + selectedCategoryId + '"]'
+        );
+
+        if (selectedButton) {
+
+            selectedButton.classList.add("is-selected");
+
+            const categoryName =
+                selectedButton.dataset.categoryName || "Selected category";
+
+            const selectedText =
+                document.getElementById("selected-category");
+
+            if (selectedText) {
+                selectedText.textContent =
+                    "Selected: " + categoryName;
+            }
+
+        }
+
+    }
+
+
+    /* =====================================================
+       CHART.JS
+       ===================================================== */
+
+    const canvas = document.getElementById("expenseChart");
+
+    if (!canvas || typeof Chart === "undefined") {
+        return;
+    }
+
+    let labels = [];
+    let values = [];
+
+    try {
+
+        labels = JSON.parse(
+            "{{ category_labels|escapejs }}"
+        );
+
+        values = JSON.parse(
+            "{{ category_values|escapejs }}"
+        );
+
+    } catch (error) {
+
+        console.error(
+            "Unable to read expense chart data:",
+            error
+        );
+
+        return;
+
+    }
+
+
+    if (!Array.isArray(labels) || !Array.isArray(values)) {
+        return;
+    }
+
+
+    new Chart(canvas.getContext("2d"), {
+
+        type: "bar",
+
+        data: {
+
+            labels: labels,
+
+            datasets: [{
+
+                label: "Expenses",
+
+                data: values,
+
+                backgroundColor: "rgba(59,130,246,.72)",
+
+                borderColor: "#60a5fa",
+
+                borderWidth: 1,
+
+                borderRadius: 8,
+
+                maxBarThickness: 48
+
+            }]
+
+        },
+
+        options: {
+
+            responsive: true,
+
+            maintainAspectRatio: false,
+
+            interaction: {
+                intersect: false,
+                mode: "index"
+            },
+
+            scales: {
+
+                y: {
+
+                    beginAtZero: true,
+
+                    border: {
+                        display: false
+                    },
+
+                    grid: {
+                        color: "rgba(148,163,184,.09)"
+                    },
+
+                    ticks: {
+                        color: "#94a3b8",
+                        padding: 8
+                    }
+
+                },
+
+                x: {
+
+                    border: {
+                        display: false
+                    },
+
+                    grid: {
+                        display: false
+                    },
+
+                    ticks: {
+                        color: "#94a3b8",
+                        maxRotation: 0
+                    }
+
+                }
+
+            },
+
+            plugins: {
+
+                legend: {
+                    display: false
+                },
+
+                tooltip: {
+
+                    backgroundColor: "#172238",
+
+                    titleColor: "#f8fafc",
+
+                    bodyColor: "#cbd5e1",
+
+                    borderColor: "rgba(148,163,184,.16)",
+
+                    borderWidth: 1,
+
+                    padding: 12,
+
+                    displayColors: false,
+
+                    callbacks: {
+
+                        label: function (context) {
+
+                            return " ₹" +
+                                Number(context.raw || 0)
+                                .toLocaleString("en-IN", {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2
+                                });
+
+                        }
+
+                    }
+
+                }
+
+            }
+
+        }
+
     });
 
-    // Initial category selection on load
-    if (selectedCategoryFromServer) {
-      selectCategory(selectedCategoryFromServer);
-    }
 });
 </script>
-</body>
-</html>
+
+{% endblock %}

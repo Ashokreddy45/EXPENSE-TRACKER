@@ -174,7 +174,7 @@
   <div class="spinner"></div>
 </div>
 
-<div class="flex items-center justify-center min-h-screen p-4 relative z-10">
+<div class="flex items-center justify-center min-h-[100dvh] box-border p-4 relative z-10">
   <div class="max-w-md w-full">
     <div class="glass-card p-8 sm:p-12">
       <div class="text-center mb-8">
@@ -215,45 +215,43 @@
             class="w-full py-3 rounded-lg text-lg font-semibold bg-blue-600 hover:bg-blue-700 text-white shadow-lg focus:outline-none focus:ring-4 focus:ring-blue-500/50 btn-primary">
             Log In
           </button>
-          <div class="mt-8 text-center">
+          <div class="mt-6 text-center space-y-4">
             <a href="{% url 'reset_password' %}" class="text-sm text-blue-400 hover:underline transition">Forgot password?</a>
+            <p class="text-sm text-gray-300">
+              Don't have an account?
+              <a href="{% url 'register' %}" class="font-semibold text-blue-400 hover:text-blue-300 hover:underline transition">Sign up</a>
+            </p>
           </div>
         </form>
         {% else %}
-        <button onclick="handleBiometricLogin()"
-          class="w-full py-3 rounded-lg text-lg font-semibold bg-blue-600 hover:bg-blue-700 text-white shadow-lg focus:outline-none focus:ring-4 focus:ring-blue-500/50 btn-primary">
-          <span class="flex items-center justify-center gap-2">
-            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14c-1.104 0-2-.896-2-2s.896-2 2-2 2 .896 2 2-.896 2-2 2zm0-4V8m0 8v2m-4-6h-2m8 0h2" />
-            </svg>
-            Login with Biometrics
-          </span>
-        </button>
-  
-        <div class="flex items-center my-6">
-          <hr class="flex-grow border-t border-gray-700">
-          <span class="mx-4 text-gray-500 font-medium text-sm">or</span>
-          <hr class="flex-grow border-t border-gray-700">
-        </div>
-  
-        <form method="POST" autocomplete="on" class="space-y-6" id="passwordless_form">
+        <form method="POST" autocomplete="on" class="space-y-6" id="password_form">
           {% csrf_token %}
           <div>
-            <label for="identifier" class="sr-only">Email or Phone</label>
-            <input id="identifier" name="identifier" type="text" required autocomplete="username"
+            <label for="username" class="sr-only">Username or email</label>
+            <input id="username" name="username" type="text" required autocomplete="username"
               class="form-input w-full px-4 py-3 rounded-lg focus:outline-none"
-              placeholder="Enter your email or phone" />
+              placeholder="Enter your username or email" />
+          </div>
+          <div>
+            <label for="password" class="sr-only">Password</label>
+            <input id="password" name="password" type="password" required autocomplete="current-password"
+              class="form-input w-full px-4 py-3 rounded-lg focus:outline-none"
+              placeholder="Enter your password" />
           </div>
           <button type="submit"
-            class="w-full py-3 rounded-lg text-lg font-semibold bg-gray-700 hover:bg-gray-600 text-gray-300 shadow-lg focus:outline-none focus:ring-4 focus:ring-gray-500/50 btn-primary">
-            Send Magic Link
+            class="w-full py-3 rounded-lg text-lg font-semibold bg-blue-600 hover:bg-blue-700 text-white shadow-lg focus:outline-none focus:ring-4 focus:ring-blue-500/50 btn-primary">
+            Log In
           </button>
+          <div class="mt-6 text-center space-y-4">
+            <a href="{% url 'reset_password' %}" class="text-sm text-blue-400 hover:underline transition">Forgot password?</a>
+            <p class="text-sm text-gray-300">
+              Don't have an account?
+              <a href="{% url 'register' %}" class="font-semibold text-blue-400 hover:text-blue-300 hover:underline transition">Sign up</a>
+            </p>
+          </div>
         </form>
-  
-        <div class="mt-8 text-center">
-          <a href="{% url 'login' %}?form=password" class="text-sm text-blue-400 hover:underline transition">
-            <span class="font-medium">Or, use a password instead</span>
-          </a>
+        <div class="mt-6 text-center">
+          <p class="text-sm text-gray-400">Sign in securely with your account credentials.</p>
         </div>
         {% endif %}
       </div>
@@ -263,39 +261,4 @@
 {% endblock content %}
 
 {% block extra_body_js %}
-<script>
-  // Utility function to toggle the loading overlay
-  function setLoading(active) {
-    const overlay = document.getElementById('loading-overlay');
-    if (active) {
-      overlay.classList.add('active');
-    } else {
-      overlay.classList.remove('active');
-    }
-  }
-
-  // Handle a biometric login attempt
-  function handleBiometricLogin() {
-    setLoading(true);
-    // Simulate a system biometric prompt and a successful login
-    setTimeout(() => {
-      window.location.href = '{% url "home" %}?auth_method=biometric';
-    }, 1500);
-  }
-
-  // Handle the magic link submission (POST to Django)
-  document.addEventListener('DOMContentLoaded', function() {
-    const passwordlessForm = document.getElementById('passwordless_form');
-    if (passwordlessForm) {
-      passwordlessForm.addEventListener('submit', function(e) {
-        e.preventDefault();
-        setLoading(true);
-        const identifier = document.getElementById('identifier').value;
-        setTimeout(() => {
-            window.location.href = '{% url "login" %}?message=Magic+link+sent+to+' + encodeURIComponent(identifier);
-        }, 1500);
-      });
-    }
-  });
-</script>
 {% endblock extra_body_js %}

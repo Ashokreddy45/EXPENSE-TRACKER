@@ -1,127 +1,92 @@
-{% extends 'home/navbar.html' %} 
-{% load static %} 
+{% extends 'home/base.html' %}
+{% load static %}
 
-{% block title %}FinTrack Services - Master Your Money{% endblock %}
+{% block title %}Services | FinTrack{% endblock %}
 
 {% block extra_head %}
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    body {
-      font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: #131b30;
-      min-height: 100vh;
-      color: #f1f5f9;
-    }
-    .glass-card {
-      background: rgba(255,255,255,0.10);
-      -webkit-backdrop-filter: blur(18px);
-      backdrop-filter: blur(18px);
-      border-radius: 1.2rem;
-      border: 1.3px solid rgba(255,255,255,0.15);
-      box-shadow: 0 8px 32px 0 rgba(16,56,96,0.09), 0 2px 10px 0 rgba(30,64,175,0.03);
-      transition: box-shadow 0.22s, transform 0.16s;
-    }
-    .glass-card:hover {
-      box-shadow: 0 10px 38px 0 #38bdf84d, 0 10px 38px 0 #2563eb13;
-      transform: translateY(-1.5px) scale(1.025);
-    }
-    .fade-in-section {
-      opacity: 0;  transform: translateY(24px);
-      transition: all 1.1s cubic-bezier(.3,1.13,.16,1.09);
-      will-change: opacity, transform;
-    }
-    .fade-in-section.in-view { opacity: 1; transform: none; }
-  </style>
+<link rel="stylesheet" href="{% static 'home/css/expense_workspace.css' %}">
+<style>
+.ft-public-page { max-width: 1180px; margin: 0 auto; padding: 38px 24px 64px; }
+.ft-public-hero { max-width: 780px; margin: 0 auto 38px; text-align: center; }
+.ft-public-eyebrow { display: inline-block; margin-bottom: 14px; padding: 7px 12px; border: 1px solid var(--ft-border, #64748b); border-radius: 999px; font-size: .78rem; font-weight: 700; letter-spacing: .09em; text-transform: uppercase; opacity: .8; }
+.ft-public-hero h1 { margin: 0 0 16px; font-size: clamp(2rem, 5vw, 3.25rem); line-height: 1.12; font-weight: 800; letter-spacing: -.035em; }
+.ft-public-hero p { max-width: 680px; margin: 0 auto; font-size: 1.05rem; line-height: 1.8; opacity: .76; }
+.ft-service-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
+.ft-service-card { display: flex; min-width: 0; flex-direction: column; padding: 25px; border: 1px solid var(--ft-border, #64748b); border-radius: 20px; background: var(--ft-card-bg, rgba(127,127,127,.06)); transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease; }
+.ft-service-card:hover { transform: translateY(-4px); border-color: #60a5fa; box-shadow: 0 14px 32px rgba(37,99,235,.10); }
+.ft-service-icon { display: grid; width: 52px; height: 52px; place-items: center; margin-bottom: 20px; border-radius: 16px; background: rgba(59,130,246,.12); color: #60a5fa; font-size: 22px; }
+.ft-service-card h2 { margin: 0 0 10px; font-size: 1.18rem; line-height: 1.45; font-weight: 750; }
+.ft-service-card p { margin: 0 0 22px; line-height: 1.75; opacity: .76; }
+.ft-service-link { display: inline-flex; align-items: center; gap: 9px; margin-top: auto; font-weight: 700; color: #60a5fa; text-decoration: none; }
+.ft-service-link:hover { text-decoration: underline; }
+.ft-service-status { align-self: flex-start; margin-top: auto; padding: 6px 10px; border-radius: 999px; background: rgba(148,163,184,.14); font-size: .78rem; font-weight: 650; opacity: .85; }
+.ft-services-cta { margin-top: 28px; padding: clamp(24px, 5vw, 42px); border: 1px solid var(--ft-border, #64748b); border-radius: 22px; text-align: center; background: var(--ft-card-bg, rgba(127,127,127,.06)); }
+.ft-services-cta h2 { margin: 0 0 10px; font-size: clamp(1.45rem, 3vw, 2rem); font-weight: 800; }
+.ft-services-cta p { max-width: 620px; margin: 0 auto 22px; line-height: 1.75; opacity: .76; }
+.ft-public-button { display: inline-flex; justify-content: center; align-items: center; gap: 9px; min-height: 46px; padding: 12px 20px; border-radius: 12px; background: #2563eb; color: #fff !important; text-decoration: none; font-weight: 700; transition: background .2s ease, transform .2s ease; }
+.ft-public-button:hover { background: #1d4ed8; transform: translateY(-1px); }
+@media (max-width: 900px) { .ft-service-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 600px) { .ft-public-page { padding: 26px 14px 42px; } .ft-service-grid { grid-template-columns: 1fr; } .ft-service-card { padding: 22px; } }
+@media (prefers-reduced-motion: reduce) { .ft-service-card, .ft-public-button { transition: none; } .ft-service-card:hover, .ft-public-button:hover { transform: none; } }
+</style>
 {% endblock %}
 
 {% block content %}
-<main class="container mx-auto px-3 sm:px-6 lg:px-8 py-28 flex-grow z-10 relative">
-  <section class="mb-16 fade-in-section">
-    <h1 class="text-4xl lg:text-5xl font-extrabold text-white drop-shadow-2xl text-center mb-8 leading-tight">
-      Our <span class="text-sky-300">Financial Services</span>
-    </h1>
-    <p class="text-center text-gray-200 text-xl font-medium mb-12 max-w-3xl mx-auto" style="transition-delay:0.13s">
-      FinTrack provides a comprehensive suite of tools designed to simplify your financial life, from daily spending to long-term wealth building.
-    </p>
+<main class="ft-management-page ft-public-page">
+    <header class="ft-public-hero">
+        <span class="ft-public-eyebrow">Your finances, in focus</span>
+        <h1>Tools to help you <span style="color:#60a5fa;">manage money better</span></h1>
+        <p>Keep track of spending, plan your budget, understand your financial activity, and work towards your savings goals in one place.</p>
+    </header>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-      <div class="glass-card p-6 text-center fade-in-section" style="transition-delay:0.2s">
-        <i class="fas fa-chart-pie fa-4x text-emerald-400 mb-5"></i>
-        <h2 class="text-2xl font-bold text-white mb-3">Intelligent Budget Planning</h2>
-        <p class="text-gray-200 leading-relaxed">
-          Create realistic budgets, track your spending against categories, and receive smart alerts to stay on track. Understand where your money goes and optimize your financial habits with ease.
-        </p>
-        <a href="{% url 'create_budget' %}" class="mt-6 inline-block bg-sky-600 hover:bg-sky-700 text-white font-bold py-2 px-5 rounded-full transition-all duration-300 ease-in-out hover:scale-105">
-          Learn More <i class="fas fa-arrow-right ml-2"></i>
-        </a>
-      </div>
+    <section class="ft-service-grid" aria-label="FinTrack features">
+        <article class="ft-service-card">
+            <div class="ft-service-icon"><i class="fa-solid fa-wallet" aria-hidden="true"></i></div>
+            <h2>Expense Tracking</h2>
+            <p>Record expenses, organise transactions by category, and review your spending history to understand where your money goes.</p>
+            <a class="ft-service-link" href="{% url 'add_expense' %}">Track expenses <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+        </article>
 
-      <div class="glass-card p-6 text-center fade-in-section" style="transition-delay:0.28s">
-        <i class="fas fa-chart-line fa-4x text-rose-400 mb-5"></i>
-        <h2 class="text-2xl font-bold text-white mb-3">Insightful Financial Analysis</h2>
-        <p class="text-gray-200 leading-relaxed">
-          Access powerful analytics and customizable reports to visualize your financial health. Identify trends, savings opportunities, and areas for improvement with detailed insights.
-        </p>
-        <a href="{% url 'view_all_transactions' %}" class="mt-6 inline-block bg-sky-600 hover:bg-sky-700 text-white font-bold py-2 px-5 rounded-full transition-all duration-300 ease-in-out hover:scale-105">
-          View Reports <i class="fas fa-arrow-right ml-2"></i>
-        </a>
-      </div>
+        <article class="ft-service-card">
+            <div class="ft-service-icon"><i class="fa-solid fa-chart-pie" aria-hidden="true"></i></div>
+            <h2>Budget Planning</h2>
+            <p>Set category-based budget limits and compare your spending against the limits you choose.</p>
+            <a class="ft-service-link" href="{% url 'create_budget' %}">Manage budgets <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+        </article>
 
-      <div class="glass-card p-6 text-center fade-in-section" style="transition-delay:0.36s">
-        <i class="fas fa-hand-holding-dollar fa-4x text-amber-400 mb-5"></i>
-        <h2 class="text-2xl font-bold text-white mb-3">Proactive Debt Management</h2>
-        <p class="text-gray-200 leading-relaxed">
-          Strategize and tackle your debts with our structured management tools. Set repayment goals, track progress, and get actionable advice to become debt-free faster.
-        </p>
-        <a href="#" class="mt-6 inline-block bg-sky-600 hover:bg-sky-700 text-white font-bold py-2 px-5 rounded-full transition-all duration-300 ease-in-out hover:scale-105">
-          Start Managing <i class="fas fa-arrow-right ml-2"></i>
-        </a>
-      </div>
+        <article class="ft-service-card">
+            <div class="ft-service-icon"><i class="fa-solid fa-chart-line" aria-hidden="true"></i></div>
+            <h2>Financial Overview</h2>
+            <p>Review your recorded financial activity and use available reports to spot spending patterns.</p>
+            <a class="ft-service-link" href="{% url 'view_all_transactions' %}">View transactions <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+        </article>
 
-      <div class="glass-card p-6 text-center fade-in-section" style="transition-delay:0.44s">
-        <i class="fas fa-sack-dollar fa-4x text-purple-400 mb-5"></i>
-        <h2 class="text-2xl font-bold text-white mb-3">Simplified Investment Tracking</h2>
-        <p class="text-gray-200 leading-relaxed">
-          Monitor your investments, track portfolio performance, and understand your asset allocation all in one place. Make informed investment decisions.
-        </p>
-        <a href="#" class="mt-6 inline-block bg-sky-600 hover:bg-sky-700 text-white font-bold py-2 px-5 rounded-full transition-all duration-300 ease-in-out hover:scale-105">
-          Track Investments <i class="fas fa-arrow-right ml-2"></i>
-        </a>
-      </div>
+        <article class="ft-service-card">
+            <div class="ft-service-icon"><i class="fa-solid fa-bullseye" aria-hidden="true"></i></div>
+            <h2>Savings Goals</h2>
+            <p>Create a target, set a deadline, and keep your savings intentions visible as you work towards them.</p>
+            <a class="ft-service-link" href="{% url 'set_goal' %}">Manage goals <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+        </article>
 
-      <div class="glass-card p-6 text-center fade-in-section" style="transition-delay:0.52s">
-        <i class="fas fa-bullseye fa-4x text-blue-400 mb-5"></i>
-        <h2 class="text-2xl font-bold text-white mb-3">Achieve Financial Goals</h2>
-        <p class="text-gray-200 leading-relaxed">
-          Set ambitious financial goals like buying a home or saving for retirement. FinTrack helps you break them down into manageable steps and track your journey.
-        </p>
-        <a href="{% url 'set_goal' %}" class="mt-6 inline-block bg-sky-600 hover:bg-sky-700 text-white font-bold py-2 px-5 rounded-full transition-all duration-300 ease-in-out hover:scale-105">
-          Set Goals <i class="fas fa-arrow-right ml-2"></i>
-        </a>
-      </div>
+        <article class="ft-service-card">
+            <div class="ft-service-icon"><i class="fa-solid fa-receipt" aria-hidden="true"></i></div>
+            <h2>Tax Estimation</h2>
+            <p>Use the available tax tools to estimate tax based on the information you enter. Review the result carefully before making tax decisions.</p>
+            <a class="ft-service-link" href="{% url 'home' %}">Open FinTrack <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+        </article>
 
-      <div class="glass-card p-6 text-center fade-in-section" style="transition-delay:0.6s">
-        <i class="fas fa-file-invoice-dollar fa-4x text-cyan-400 mb-5"></i>
-        <h2 class="text-2xl font-bold text-white mb-3">Tax Preparation Assistance</h2>
-        <p class="text-gray-200 leading-relaxed">
-          Organize your financial data for tax season with ease. Generate reports that simplify tax filing and ensure you don't miss any deductions.
-        </p>
-        <button data-modal-target="taxation-modal" data-modal-toggle="taxation-modal" class="mt-6 inline-block bg-sky-600 hover:bg-sky-700 text-white font-bold py-2 px-5 rounded-full transition-all duration-300 ease-in-out hover:scale-105">
-          Tax Tools <i class="fas fa-arrow-right ml-2"></i>
-        </button>
-      </div>
-    </div>
-
-    <section class="glass-card p-8 text-center mt-16 fade-in-section" style="transition-delay:0.68s">
-      <h2 class="text-3xl font-bold text-white mb-4 drop-shadow">Ready to Take Control of Your Finances?</h2>
-      <p class="text-lg text-gray-200 max-w-4xl mx-auto leading-relaxed mb-8">
-        Join thousands of users who are already benefiting from FinTrack's powerful and intuitive financial management tools.
-      </p>
-      <a href="{% url 'login' %}" class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-4 px-10 rounded-full text-xl uppercase tracking-wide transition-all duration-300 ease-in-out transform hover:scale-105 hover:shadow-2xl focus:outline-none focus:ring-4 focus:ring-offset-2 focus:ring-emerald-300">
-        Get Started Today! <i class="fas fa-play-circle ml-3"></i>
-      </a>
+        <article class="ft-service-card">
+            <div class="ft-service-icon"><i class="fa-solid fa-layer-group" aria-hidden="true"></i></div>
+            <h2>More Financial Tools</h2>
+            <p>Debt-management and investment-portfolio tracking are not currently available as dedicated FinTrack features.</p>
+            <span class="ft-service-status">Not available yet</span>
+        </article>
     </section>
-  </section>
+
+    <section class="ft-services-cta">
+        <h2>Ready to get started?</h2>
+        <p>Open your dashboard to continue managing your finances with the tools currently available in FinTrack.</p>
+        <a href="{% url 'home' %}" class="ft-public-button">Go to Dashboard <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+    </section>
 </main>
 {% endblock %}

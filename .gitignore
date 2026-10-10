@@ -52,3 +52,29 @@ db.sqlite3
 # ================================
 *.swp
 *.swo
+# Local backups and temporary snapshots (preserve locally, don't deploy)
+backups/
+*.backup
+*.bak
+*.before-*
+*.fix*-backup
+*.category-backup
+*.taxation-backup
+*.command-center-backup
+*.management-final-backup
+*.pre_deploy_backup
+*.pre_deployment_backup
+*.pre_security_backup
+*.backup*
+
+# Additional local development backups
+*.backup*
+*.before_*
+*.before-*
+*.category-backup*
+*.taxation-backup*
+*.taxation-ui-backup*
+*.backup*
+
+home/templates/home/home.taxation-ui-v2-backup.html
+home/views.taxation-comparison-backup.py

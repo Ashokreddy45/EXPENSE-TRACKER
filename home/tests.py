@@ -56,16 +56,16 @@ class CategoryTests(TestCase):
     def test_category_creation(self):
         category = Category.objects.create(
             user=self.user,
-            name="Food",
+            name="Custom Food",
             type="expense",
         )
 
-        self.assertEqual(category.name, "Food")
+        self.assertEqual(category.name, "Custom Food")
         self.assertEqual(category.type, "expense")
-        self.assertEqual(str(category), "Food (expense)")
+        self.assertEqual(str(category), "Custom Food (expense)")
 
     def test_duplicate_category_for_same_user_and_type_is_not_allowed(self):
-        Category.objects.create(
+        Category.objects.get(
             user=self.user,
             name="Food",
             type="expense",
@@ -103,7 +103,7 @@ class TransactionTests(TestCase):
             password="TestPassword123",
         )
 
-        self.category = Category.objects.create(
+        self.category = Category.objects.get(
             user=self.user,
             name="Food",
             type="expense",
@@ -146,7 +146,7 @@ class IncomeTests(TestCase):
             password="TestPassword123",
         )
 
-        self.category = Category.objects.create(
+        self.category = Category.objects.get(
             user=self.user,
             name="Salary",
             type="income",
@@ -276,7 +276,7 @@ class ViewPageTests(TestCase):
     def test_remaining_budget_uses_current_month_budget(self):
         today = timezone.now().date()
 
-        category = Category.objects.create(
+        category = Category.objects.get(
             user=self.user,
             name="Food",
             type="expense",
@@ -316,7 +316,7 @@ class ViewPageTests(TestCase):
     def test_budget_overtime_chart_data(self):
         today = timezone.now().date()
 
-        category = Category.objects.create(
+        category = Category.objects.get(
             user=self.user,
             name="Food",
             type="expense",
@@ -414,7 +414,7 @@ class CategoryCRUDTests(TestCase):
         response = self.client.post(
             reverse("add_category"),
             {
-                "name": "Entertainment",
+                "name": "Entertainment Test",
                 "type": "expense",
             },
         )
@@ -424,7 +424,7 @@ class CategoryCRUDTests(TestCase):
         self.assertTrue(
             Category.objects.filter(
                 user=self.user,
-                name="Entertainment",
+                name="Entertainment Test",
                 type="expense",
             ).exists()
         )
@@ -482,7 +482,7 @@ class ExpenseCRUDTests(TestCase):
             password="TestPassword123",
         )
 
-        self.category = Category.objects.create(
+        self.category = Category.objects.get(
             user=self.user,
             name="Food",
             type="expense",
@@ -607,7 +607,7 @@ class IncomeCRUDTests(TestCase):
             password="TestPassword123",
         )
 
-        self.category = Category.objects.create(
+        self.category = Category.objects.get(
             user=self.user,
             name="Salary",
             type="income",
@@ -805,7 +805,7 @@ class BudgetCRUDTests(TestCase):
         )
 
     def test_cannot_edit_another_users_budget(self):
-        other_category = Category.objects.create(
+        other_category, _ = Category.objects.get_or_create(
             user=self.other_user,
             name="Other Budget",
             type="budget",
@@ -929,7 +929,7 @@ class GoalCRUDTests(TestCase):
         )
 
     def test_cannot_edit_another_users_goal(self):
-        other_category = Category.objects.create(
+        other_category = Category.objects.get(
             user=self.other_user,
             name="Other Goal",
             type="goal",
@@ -992,14 +992,14 @@ class TaxationTests(TestCase):
 
         data = response.json()
 
-        self.assertIn("current_fy", data)
+        self.assertIn("new_regime", data)
+        self.assertIn("old_regime", data)
 
-        current_fy = data["current_fy"]
-
-        self.assertIn("taxable_income", current_fy)
-        self.assertIn("tax_percentage", current_fy)
-        self.assertIn("total_tax_amount", current_fy)
-        self.assertIn("in_hand_salary", current_fy)
+        for regime in ("new_regime", "old_regime"):
+            self.assertIn("taxable_income_after_deduction", data[regime])
+            self.assertIn("tax_percentage", data[regime])
+            self.assertIn("total_tax_amount", data[regime])
+            self.assertIn("in_hand_salary", data[regime])
 
     def test_period_tax_calculation(self):
         Income.objects.create(
@@ -1075,3 +1075,100 @@ class TaxationTests(TestCase):
             data["error"],
             "End date must be at least one month after the start date.",
         )
+
+
+class PasswordResetTests(TestCase):
+    def setUp(self):
+        self.user = CustomUser.objects.create_user(
+            username="resetuser",
+            email="reset@example.com",
+            password="OriginalPassword123!",
+        )
+        self.profile = self.user.profile
+        self.verify_url = reverse("verify_reset_code")
+        self.reset_url = reverse("reset_password")
+
+    def set_reset_code(self, code, created_at):
+        self.profile.reset_code = code
+        self.profile.reset_code_created_at = created_at
+        self.profile.save(update_fields=[
+            "reset_code",
+            "reset_code_created_at",
+        ])
+
+    def test_valid_code_resets_password_and_cannot_be_reused(self):
+        self.set_reset_code("482631", timezone.now())
+
+        response = self.client.post(self.verify_url, {
+            "reset_code": "482631",
+            "new_password": "NewSecurePassword123!",
+            "confirm_password": "NewSecurePassword123!",
+        })
+
+        self.assertRedirects(response, reverse("login"))
+        self.user.refresh_from_db()
+        self.profile.refresh_from_db()
+        self.assertTrue(self.user.check_password("NewSecurePassword123!"))
+        self.assertFalse(self.profile.reset_code)
+        self.assertIsNone(self.profile.reset_code_created_at)
+
+        response = self.client.post(self.verify_url, {
+            "reset_code": "482631",
+            "new_password": "AnotherPassword123!",
+            "confirm_password": "AnotherPassword123!",
+        })
+
+        self.user.refresh_from_db()
+        self.assertFalse(self.user.check_password("AnotherPassword123!"))
+
+    def test_expired_code_is_rejected(self):
+        self.set_reset_code(
+            "482632",
+            timezone.now() - timezone.timedelta(minutes=16),
+        )
+
+        response = self.client.post(self.verify_url, {
+            "reset_code": "482632",
+            "new_password": "NewSecurePassword123!",
+            "confirm_password": "NewSecurePassword123!",
+        })
+
+        self.assertEqual(response.status_code, 200)
+        self.user.refresh_from_db()
+        self.profile.refresh_from_db()
+        self.assertTrue(self.user.check_password("OriginalPassword123!"))
+        self.assertFalse(self.profile.reset_code)
+        self.assertIsNone(self.profile.reset_code_created_at)
+
+    def test_mismatched_passwords_are_rejected(self):
+        self.set_reset_code("482633", timezone.now())
+
+        response = self.client.post(self.verify_url, {
+            "reset_code": "482633",
+            "new_password": "NewSecurePassword123!",
+            "confirm_password": "DifferentPassword123!",
+        })
+
+        self.assertEqual(response.status_code, 200)
+        self.user.refresh_from_db()
+        self.assertTrue(self.user.check_password("OriginalPassword123!"))
+
+    def test_reset_page_loads_email_form(self):
+        response = self.client.get(self.reset_url)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'name="email"')
+
+    def test_reset_request_sends_email_for_existing_account(self):
+        from django.core import mail
+
+        response = self.client.post(self.reset_url, {
+            "email": self.user.email,
+        })
+
+        self.assertRedirects(response, self.verify_url)
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertIn("reset@example.com", mail.outbox[0].to)
+        self.profile.refresh_from_db()
+        self.assertTrue(self.profile.reset_code)
+        self.assertIsNotNone(self.profile.reset_code_created_at)

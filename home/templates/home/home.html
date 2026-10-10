@@ -151,28 +151,1880 @@
 
   <section class="mb-24 fade-in-section" style="transition-delay:0.49s">
     <h2 class="text-3xl font-bold text-white border-b-4 border-emerald-400 pb-3 mb-10 text-center drop-shadow">Quick Actions</h2>
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-      <a href="{% url 'add_expense' %}" class="flex flex-col items-center justify-center p-6 bg-gray-800 bg-opacity-70 backdrop-filter backdrop-blur-lg rounded-2xl shadow-xl border border-rose-600 text-rose-300 hover:text-rose-200 hover:border-rose-400 transition-all duration-300 transform hover:-translate-y-2 hover:shadow-2xl" title="Add Expense">
-        <i class="fas fa-minus-circle fa-3x mb-4"></i> <span class="font-bold text-xl">Add Expense</span>
-      </a>
-      <a href="{% url 'add_income' %}" class="flex flex-col items-center justify-center p-6 bg-gray-800 bg-opacity-70 backdrop-filter backdrop-blur-lg rounded-2xl shadow-xl border border-emerald-600 text-emerald-300 hover:text-emerald-200 hover:border-emerald-400 transition-all duration-300 transform hover:-translate-y-2 hover:shadow-2xl" title="Add Income">
-        <i class="fas fa-plus-circle fa-3x mb-4"></i> <span class="font-bold text-xl">Add Income</span>
-      </a>
-      <a href="{% url 'create_budget' %}" class="flex flex-col items-center justify-center p-6 bg-gray-800 bg-opacity-70 backdrop-filter backdrop-blur-lg rounded-2xl shadow-xl border border-amber-600 text-amber-300 hover:text-amber-200 hover:border-amber-400 transition-all duration-300 transform hover:-translate-y-2 hover:shadow-2xl" title="Create Budget">
-        <i class="fas fa-wallet fa-3x mb-4"></i> <span class="font-bold text-xl">Create Budget</span>
-      </a>
-      <a href="{% url 'set_goal' %}" class="flex flex-col items-center justify-center p-6 bg-gray-800 bg-opacity-70 backdrop-filter backdrop-blur-lg rounded-2xl shadow-xl border border-fuchsia-600 text-fuchsia-300 hover:text-fuchsia-200 hover:border-fuchsia-400 transition-all duration-300 transform hover:-translate-y-2 hover:shadow-2xl" title="Set Goal">
-        <i class="fas fa-bullseye fa-3x mb-4"></i> <span class="font-bold text-xl">Set a Goal</span>
-      </a>
-      <button data-modal-target="taxation-modal" data-modal-toggle="taxation-modal" class="flex flex-col items-center justify-center p-6 bg-gray-800 bg-opacity-70 backdrop-filter backdrop-blur-lg rounded-2xl shadow-xl border border-sky-600 text-sky-300 hover:text-sky-200 hover:border-sky-400 transition-all duration-300 transform hover:-translate-y-2 hover:shadow-2xl" title="Taxation">
-        <i class="fas fa-chart-line fa-3x mb-4"></i> <span class="font-bold text-xl">Taxation</span>
-      </button>
+    <div class="fintrack-quick-actions">
+      <a
+  href="{% url 'add_expense' %}"
+  class="fintrack-quick-action quick-action-expense"
+  title="Add Expense"
+>
+  <span class="quick-action-icon">
+    <i class="fas fa-minus"></i>
+  </span>
+
+  <span class="quick-action-content">
+    <strong>Add Expense</strong>
+    <small>Record a new expense</small>
+  </span>
+
+  <span class="quick-action-arrow">
+    <i class="fas fa-arrow-right"></i>
+  </span>
+</a>
+
+
+<a
+  href="{% url 'add_income' %}"
+  class="fintrack-quick-action quick-action-income"
+  title="Add Income"
+>
+  <span class="quick-action-icon">
+    <i class="fas fa-plus"></i>
+  </span>
+
+  <span class="quick-action-content">
+    <strong>Add Income</strong>
+    <small>Record incoming money</small>
+  </span>
+
+  <span class="quick-action-arrow">
+    <i class="fas fa-arrow-right"></i>
+  </span>
+</a>
+
+
+<a
+  href="{% url 'create_budget' %}"
+  class="fintrack-quick-action quick-action-budget"
+  title="Create Budget"
+>
+  <span class="quick-action-icon">
+    <i class="fas fa-wallet"></i>
+  </span>
+
+  <span class="quick-action-content">
+    <strong>Create Budget</strong>
+    <small>Plan your spending</small>
+  </span>
+
+  <span class="quick-action-arrow">
+    <i class="fas fa-arrow-right"></i>
+  </span>
+</a>
+
+
+<a
+  href="{% url 'set_goal' %}"
+  class="fintrack-quick-action quick-action-goal"
+  title="Set Goal"
+>
+  <span class="quick-action-icon">
+    <i class="fas fa-bullseye"></i>
+  </span>
+
+  <span class="quick-action-content">
+    <strong>Set a Goal</strong>
+    <small>Track a financial target</small>
+  </span>
+
+  <span class="quick-action-arrow">
+    <i class="fas fa-arrow-right"></i>
+  </span>
+</a>
+
+
+<button
+  type="button"
+  id="taxation-button"
+  class="fintrack-quick-action quick-action-tax"
+  title="Taxation"
+>
+  <span class="quick-action-icon">
+    <i class="fas fa-chart-line"></i>
+  </span>
+
+  <span class="quick-action-content">
+    <strong>Taxation</strong>
+    <small>Estimate your tax</small>
+  </span>
+
+  <span class="quick-action-arrow">
+    <i class="fas fa-arrow-right"></i>
+  </span>
+</button>
     </div>
   </section>
+
+  <!-- Taxation Modal -->
+<div id="taxation-modal"
+     tabindex="-1"
+     aria-hidden="true"
+     class="hidden fixed inset-0 z-50 flex items-center justify-center w-full h-full bg-black/75 backdrop-blur-md overflow-y-auto p-4">
+
+  <div class="relative w-full max-w-5xl max-h-[94vh]">
+
+    <div class="relative overflow-hidden rounded-2xl border border-slate-700/70 bg-[#0f172a] shadow-2xl">
+
+      <!-- HEADER -->
+      <div class="px-6 py-5 border-b border-slate-700/70 bg-[#111c31]">
+
+        <div class="flex items-start justify-between gap-4">
+
+          <div>
+            <div class="flex items-center gap-3">
+              <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-sky-500/10 border border-sky-400/20">
+                <i class="fas fa-file-invoice-dollar text-sky-400 text-lg"></i>
+              </div>
+
+              <div>
+                <h3 class="text-xl sm:text-2xl font-bold text-white">
+                  Tax Calculator
+                </h3>
+
+                <p class="text-sm text-slate-400 mt-1">
+                  Estimate your Indian income tax clearly and quickly
+                </p>
+              </div>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-2 mt-4">
+
+              <span class="inline-flex items-center gap-2 rounded-full border border-sky-400/20 bg-sky-400/10 px-3 py-1 text-xs font-semibold text-sky-300">
+                <i class="fas fa-calendar-alt"></i>
+                AY 2026–27
+              </span>
+
+              <span class="inline-flex items-center gap-2 rounded-full border border-slate-600 bg-slate-800/70 px-3 py-1 text-xs font-medium text-slate-300">
+                FY 2025–26
+              </span>
+
+              <span class="inline-flex items-center gap-2 rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1 text-xs font-medium text-emerald-300">
+                <i class="fas fa-check-circle"></i>
+                New Regime by default
+              </span>
+
+            </div>
+          </div>
+
+          <button type="button"
+                  id="close-taxation-modal"
+                  aria-label="Close taxation calculator"
+                  class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-700 bg-slate-800/70 text-slate-400 transition hover:border-slate-500 hover:bg-slate-700 hover:text-white">
+            <i class="fas fa-times"></i>
+          </button>
+
+        </div>
+
+      </div>
+
+
+      <div class="max-h-[calc(94vh-105px)] overflow-y-auto">
+
+        <div class="p-5 sm:p-6 lg:p-7">
+
+          <!-- CALCULATOR MODE -->
+          <div class="mb-6">
+
+            <div class="rounded-xl border border-slate-700/70 bg-[#111c31] p-1.5">
+
+              <div class="grid grid-cols-2 gap-1.5">
+
+                <button type="button"
+                        id="annual-tax-tab"
+                        class="tax-mode-tab active flex items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-semibold transition">
+                  <i class="fas fa-wallet"></i>
+                  <span>Annual Salary</span>
+                </button>
+
+                <button type="button"
+                        id="period-tax-tab"
+                        class="tax-mode-tab flex items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-semibold transition">
+                  <i class="fas fa-calendar-range"></i>
+                  <span>Income Period</span>
+                </button>
+
+              </div>
+
+            </div>
+
+          </div>
+
+
+          <!-- INFO STRIP -->
+          <div class="mb-6 grid grid-cols-1 sm:grid-cols-3 gap-3">
+
+            <div class="rounded-xl border border-slate-700/60 bg-slate-800/40 p-4">
+              <div class="flex items-center gap-3">
+                <div class="h-9 w-9 rounded-lg bg-sky-400/10 flex items-center justify-center">
+                  <i class="fas fa-percent text-sky-400"></i>
+                </div>
+                <div>
+                  <p class="text-xs uppercase tracking-wider text-slate-500">Tax basis</p>
+                  <p class="text-sm font-semibold text-slate-200">Progressive slabs</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="rounded-xl border border-slate-700/60 bg-slate-800/40 p-4">
+              <div class="flex items-center gap-3">
+                <div class="h-9 w-9 rounded-lg bg-emerald-400/10 flex items-center justify-center">
+                  <i class="fas fa-shield-alt text-emerald-400"></i>
+                </div>
+                <div>
+                  <p class="text-xs uppercase tracking-wider text-slate-500">Included</p>
+                  <p class="text-sm font-semibold text-slate-200">87A + cess + surcharge</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="rounded-xl border border-slate-700/60 bg-slate-800/40 p-4">
+              <div class="flex items-center gap-3">
+                <div class="h-9 w-9 rounded-lg bg-violet-400/10 flex items-center justify-center">
+                  <i class="fas fa-info-circle text-violet-400"></i>
+                </div>
+                <div>
+                  <p class="text-xs uppercase tracking-wider text-slate-500">Scope</p>
+                  <p class="text-sm font-semibold text-slate-200">Normal income estimate</p>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+
+          <!-- ANNUAL FORM -->
+          <form id="annual-taxation-form"
+                class="taxation-form">
+
+            {% csrf_token %}
+
+            <input type="hidden"
+                   name="calculation_type"
+                   value="annual_estimate">
+
+            <div class="rounded-2xl border border-slate-700/70 bg-[#111c31] overflow-hidden">
+
+              <div class="px-5 py-4 border-b border-slate-700/60">
+                <div class="flex items-center justify-between gap-3">
+                  <div>
+                    <h4 class="text-base font-bold text-white">
+                      Annual salary estimate
+                    </h4>
+                    <p class="text-xs text-slate-500 mt-1">
+                      Enter your gross annual salary before standard deduction.
+                    </p>
+                  </div>
+
+                  <span class="hidden sm:inline-flex rounded-full bg-sky-400/10 px-3 py-1 text-xs font-semibold text-sky-300">
+                    Salary
+                  </span>
+                </div>
+              </div>
+
+              <div class="p-5 space-y-5">
+
+                <div>
+                  <label class="block text-sm font-semibold text-slate-300 mb-2">
+                    Annual Gross Salary
+                  </label>
+
+                  <div class="relative">
+                    <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 font-semibold">
+                      ₹
+                    </span>
+
+                    <input type="number"
+                           name="annual_salary"
+                           min="0"
+                           step="0.01"
+                           required
+                           class="w-full rounded-xl bg-slate-900/80 border border-slate-700 text-white pl-9 pr-4 py-3.5 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-400/10"
+                           placeholder="e.g. 1200000">
+                  </div>
+
+                  <p class="text-xs text-slate-500 mt-2">
+                    Example: ₹12,00,000 = ₹12 lakh annual gross salary.
+                  </p>
+                </div>
+
+
+                <!-- REGIME -->
+                <div class="rounded-xl border border-slate-700/70 bg-slate-900/40 p-4">
+
+                  <div class="flex items-start justify-between gap-4">
+
+                    <div>
+                      <p class="text-sm font-semibold text-white">
+                        Tax regime
+                      </p>
+
+                      <p class="text-xs text-slate-500 mt-1">
+                        New regime is selected by default.
+                      </p>
+                    </div>
+
+                    <span class="rounded-full bg-emerald-400/10 px-2.5 py-1 text-[11px] font-semibold text-emerald-300">
+                      Default
+                    </span>
+
+                  </div>
+
+                  <label class="mt-4 flex cursor-pointer items-start gap-3">
+
+                    <input type="checkbox"
+                           name="opted_old_regime"
+                           value="true"
+                           class="mt-1 h-4 w-4 rounded border-slate-600 bg-slate-800 text-sky-500 focus:ring-sky-500">
+
+                    <span>
+                      <span class="block text-sm font-medium text-slate-200">
+                        Use Old Tax Regime
+                      </span>
+
+                      <span class="block text-xs text-slate-500 mt-1">
+                        Select this only if you want the old-regime slab calculation.
+                      </span>
+                    </span>
+
+                  </label>
+
+                </div>
+
+
+                <button type="submit"
+                        class="w-full rounded-xl bg-sky-500 hover:bg-sky-400 text-white font-bold py-3.5 transition shadow-lg shadow-sky-500/10">
+                  <i class="fas fa-calculator mr-2"></i>
+                  Calculate Annual Tax
+                </button>
+
+              </div>
+
+            </div>
+
+          </form>
+
+
+          <!-- PERIOD FORM -->
+          <form id="period-taxation-form"
+                class="taxation-form hidden">
+
+            {% csrf_token %}
+
+            <input type="hidden"
+                   name="calculation_type"
+                   value="period">
+
+            <div class="rounded-2xl border border-slate-700/70 bg-[#111c31] overflow-hidden">
+
+              <div class="px-5 py-4 border-b border-slate-700/60">
+
+                <h4 class="text-base font-bold text-white">
+                  Income period analysis
+                </h4>
+
+                <p class="text-xs text-slate-500 mt-1">
+                  Review tracked income, expenses and estimated FY tax.
+                </p>
+
+              </div>
+
+              <div class="p-5 space-y-5">
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+                  <div>
+                    <label class="block text-sm font-semibold text-slate-300 mb-2">
+                      Start Date
+                    </label>
+
+                    <input type="date"
+                           id="start_date"
+                           name="start_date"
+                           required
+                           class="w-full rounded-xl bg-slate-900/80 border border-slate-700 text-white px-4 py-3.5 outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-400/10">
+                  </div>
+
+                  <div>
+                    <label class="block text-sm font-semibold text-slate-300 mb-2">
+                      End Date
+                    </label>
+
+                    <input type="date"
+                           id="end_date"
+                           name="end_date"
+                           required
+                           class="w-full rounded-xl bg-slate-900/80 border border-slate-700 text-white px-4 py-3.5 outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-400/10">
+                  </div>
+
+                </div>
+
+                <p id="date-error"
+                   class="hidden rounded-xl border border-red-400/20 bg-red-400/10 px-4 py-3 text-sm text-red-300">
+                  End date must be at least one month after the start date.
+                </p>
+
+
+                <div class="rounded-xl border border-amber-400/20 bg-amber-400/5 p-4">
+
+                  <div class="flex items-start gap-3">
+                    <i class="fas fa-lightbulb text-amber-400 mt-0.5"></i>
+
+                    <div>
+                      <p class="text-sm font-semibold text-amber-200">
+                        Important
+                      </p>
+
+                      <p class="text-xs text-slate-400 mt-1 leading-5">
+                        Your tracked expenses are shown as cash-flow information.
+                        They are not automatically treated as income-tax deductions.
+                      </p>
+                    </div>
+                  </div>
+
+                </div>
+
+
+                <div class="rounded-xl border border-slate-700/70 bg-slate-900/40 p-4">
+
+                  <div class="flex items-start gap-3">
+
+                    <input type="checkbox"
+                           name="opted_old_regime"
+                           value="true"
+                           class="mt-1 h-4 w-4 rounded border-slate-600 bg-slate-800 text-sky-500 focus:ring-sky-500">
+
+                    <div>
+                      <p class="text-sm font-medium text-slate-200">
+                        Use Old Tax Regime
+                      </p>
+
+                      <p class="text-xs text-slate-500 mt-1">
+                        Leave unchecked to use the new regime.
+                      </p>
+                    </div>
+
+                  </div>
+
+                </div>
+
+
+                <button type="submit"
+                        class="w-full rounded-xl bg-sky-500 hover:bg-sky-400 text-white font-bold py-3.5 transition shadow-lg shadow-sky-500/10">
+                  <i class="fas fa-chart-line mr-2"></i>
+                  Calculate Period Tax
+                </button>
+
+              </div>
+
+            </div>
+
+          </form>
+
+
+          <!-- RESULTS -->
+          <div id="taxation-results" class="hidden mt-7">
+
+            <!-- RESULT HEADER -->
+            <div class="rounded-2xl border border-sky-400/20 bg-gradient-to-br from-sky-500/10 via-[#111c31] to-[#111c31] overflow-hidden">
+
+              <div class="p-5 sm:p-6">
+
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+
+                  <div>
+                    <p class="text-xs uppercase tracking-[0.18em] text-sky-300 font-semibold">
+                      Estimated tax liability
+                    </p>
+
+                    <h4 id="tax-result-title"
+                        class="text-2xl font-bold text-white mt-1">
+                      Tax Calculation Result
+                    </h4>
+
+                    <p id="tax-result-subtitle"
+                       class="text-sm text-slate-400 mt-1">
+                      AY 2026–27 / FY 2025–26
+                    </p>
+                  </div>
+
+                  <div class="text-left sm:text-right">
+
+                    <p class="text-xs text-slate-500">
+                      Final Tax
+                    </p>
+
+                    <p id="current-fy-total-tax"
+                       class="text-3xl font-black text-red-300 mt-1">
+                      ₹0
+                    </p>
+
+                  </div>
+
+                </div>
+
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-6">
+
+                  <div class="rounded-xl bg-slate-900/60 border border-slate-700/60 p-4">
+                    <p class="text-xs text-slate-500">Taxable Income</p>
+                    <p id="current-fy-taxable-income"
+                       class="text-lg font-bold text-white mt-1">
+                      ₹0
+                    </p>
+                  </div>
+
+                  <div class="rounded-xl bg-slate-900/60 border border-slate-700/60 p-4">
+                    <p class="text-xs text-slate-500">Effective Tax Rate</p>
+                    <p id="current-fy-tax-percentage"
+                       class="text-lg font-bold text-sky-300 mt-1">
+                      0.00%
+                    </p>
+                  </div>
+
+                  <div class="rounded-xl bg-slate-900/60 border border-slate-700/60 p-4">
+                    <p class="text-xs text-slate-500">Annual In-Hand</p>
+                    <p id="current-fy-in-hand-salary"
+                       class="text-lg font-bold text-emerald-300 mt-1">
+                      ₹0
+                    </p>
+                  </div>
+
+                </div>
+
+              </div>
+
+            </div>
+
+
+            <!-- PERIOD CASH FLOW -->
+            <div id="period-net-income-display"
+                 class="hidden mt-4 rounded-2xl border border-slate-700/70 bg-[#111c31] p-5">
+
+              <div class="flex items-center gap-3 mb-4">
+
+                <div class="h-9 w-9 rounded-lg bg-violet-400/10 flex items-center justify-center">
+                  <i class="fas fa-wallet text-violet-300"></i>
+                </div>
+
+                <div>
+                  <h5 class="font-bold text-white">
+                    Period cash flow
+                  </h5>
+                  <p class="text-xs text-slate-500">
+                    Based on your tracked income and expenses.
+                  </p>
+                </div>
+
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+
+                <div class="rounded-xl bg-slate-900/60 p-4">
+                  <p class="text-xs text-slate-500">Income</p>
+                  <p id="period-total-income"
+                     class="text-lg font-bold text-emerald-300 mt-1">
+                    ₹0
+                  </p>
+                </div>
+
+                <div class="rounded-xl bg-slate-900/60 p-4">
+                  <p class="text-xs text-slate-500">Expenses</p>
+                  <p id="period-total-expenses"
+                     class="text-lg font-bold text-red-300 mt-1">
+                    ₹0
+                  </p>
+                </div>
+
+                <div class="rounded-xl bg-slate-900/60 p-4">
+                  <p class="text-xs text-slate-500">Net Cash Flow</p>
+                  <p id="period-net-income"
+                     class="text-lg font-bold text-sky-300 mt-1">
+                    ₹0
+                  </p>
+                </div>
+
+              </div>
+
+            </div>
+
+
+            <!-- BREAKDOWN -->
+            <div class="mt-4 rounded-2xl border border-slate-700/70 bg-[#111c31] overflow-hidden">
+
+              <div class="px-5 py-4 border-b border-slate-700/60">
+
+                <div class="flex items-center justify-between gap-3">
+
+                  <div>
+                    <h5 class="font-bold text-white">
+                      Tax calculation breakdown
+                    </h5>
+
+                    <p class="text-xs text-slate-500 mt-1">
+                      See exactly how the estimated tax was calculated.
+                    </p>
+                  </div>
+
+                  <span id="result-regime-badge"
+                        class="rounded-full bg-sky-400/10 px-3 py-1 text-xs font-semibold text-sky-300">
+                    New Regime
+                  </span>
+
+                </div>
+
+              </div>
+
+
+              <div class="divide-y divide-slate-700/50">
+
+                <div class="flex items-center justify-between gap-4 px-5 py-4">
+                  <span class="text-sm text-slate-400">Gross Income</span>
+                  <strong id="breakdown-gross-income" class="text-sm text-white">₹0</strong>
+                </div>
+
+                <div class="flex items-center justify-between gap-4 px-5 py-4">
+                  <span class="text-sm text-slate-400">Standard Deduction</span>
+                  <strong id="breakdown-standard-deduction" class="text-sm text-emerald-300">₹0</strong>
+                </div>
+
+                <div class="flex items-center justify-between gap-4 px-5 py-4 bg-slate-800/20">
+                  <span class="text-sm font-semibold text-slate-300">Taxable Income</span>
+                  <strong id="breakdown-taxable-income" class="text-sm font-bold text-white">₹0</strong>
+                </div>
+
+                <div class="flex items-center justify-between gap-4 px-5 py-4">
+                  <span class="text-sm text-slate-400">Tax from Slabs</span>
+                  <strong id="breakdown-slab-tax" class="text-sm text-white">₹0</strong>
+                </div>
+
+                <div class="flex items-center justify-between gap-4 px-5 py-4">
+                  <span class="text-sm text-slate-400">Section 87A Rebate</span>
+                  <strong id="breakdown-rebate" class="text-sm text-emerald-300">₹0</strong>
+                </div>
+
+                <div class="flex items-center justify-between gap-4 px-5 py-4">
+                  <span class="text-sm text-slate-400">Marginal Relief</span>
+                  <strong id="breakdown-marginal-relief" class="text-sm text-emerald-300">₹0</strong>
+                </div>
+
+                <div class="flex items-center justify-between gap-4 px-5 py-4">
+                  <span class="text-sm text-slate-400">Surcharge</span>
+                  <strong id="breakdown-surcharge" class="text-sm text-white">₹0</strong>
+                </div>
+
+                <div class="flex items-center justify-between gap-4 px-5 py-4">
+                  <span class="text-sm text-slate-400">Health & Education Cess (4%)</span>
+                  <strong id="breakdown-cess" class="text-sm text-white">₹0</strong>
+                </div>
+
+                <div class="flex items-center justify-between gap-4 px-5 py-4 bg-sky-400/5">
+                  <span class="text-sm font-bold text-white">Final Tax Payable</span>
+                  <strong id="breakdown-total-tax" class="text-base font-black text-red-300">₹0</strong>
+                </div>
+
+              </div>
+
+            </div>
+
+
+            <!-- MONTHLY SUMMARY -->
+            <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+              <div class="rounded-2xl border border-slate-700/70 bg-[#111c31] p-5">
+
+                <div class="flex items-center gap-3">
+                  <div class="h-9 w-9 rounded-lg bg-red-400/10 flex items-center justify-center">
+                    <i class="fas fa-calendar-day text-red-300"></i>
+                  </div>
+
+                  <div>
+                    <p class="text-xs text-slate-500">Average Monthly Tax</p>
+                    <p id="breakdown-monthly-tax"
+                       class="text-xl font-bold text-red-300 mt-1">
+                      ₹0
+                    </p>
+                  </div>
+                </div>
+
+              </div>
+
+              <div class="rounded-2xl border border-slate-700/70 bg-[#111c31] p-5">
+
+                <div class="flex items-center gap-3">
+                  <div class="h-9 w-9 rounded-lg bg-emerald-400/10 flex items-center justify-center">
+                    <i class="fas fa-hand-holding-usd text-emerald-300"></i>
+                  </div>
+
+                  <div>
+                    <p class="text-xs text-slate-500">Average Monthly In-Hand</p>
+                    <p id="breakdown-monthly-in-hand"
+                       class="text-xl font-bold text-emerald-300 mt-1">
+                      ₹0
+                    </p>
+                  </div>
+                </div>
+
+              </div>
+
+            </div>
+
+
+            <!-- PREVIOUS FY -->
+            <div id="previous-fy-section"
+                 class="hidden mt-4 rounded-2xl border border-slate-700/70 bg-[#111c31] overflow-hidden">
+
+              <div class="px-5 py-4 border-b border-slate-700/60">
+
+                <h5 class="font-bold text-white">
+                  Previous Financial Year
+                </h5>
+
+                <p class="text-xs text-slate-500 mt-1">
+                  Comparison with the previous FY based on tracked income.
+                </p>
+
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 p-5">
+
+                <div class="rounded-xl bg-slate-900/60 p-4">
+                  <p class="text-xs text-slate-500">Taxable Income</p>
+                  <p id="previous-fy-taxable-income"
+                     class="text-base font-bold text-white mt-1">
+                    ₹0
+                  </p>
+                </div>
+
+                <div class="rounded-xl bg-slate-900/60 p-4">
+                  <p class="text-xs text-slate-500">Total Tax</p>
+                  <p id="previous-fy-total-tax"
+                     class="text-base font-bold text-red-300 mt-1">
+                    ₹0
+                  </p>
+                </div>
+
+                <div class="rounded-xl bg-slate-900/60 p-4">
+                  <p class="text-xs text-slate-500">In-Hand</p>
+                  <p id="previous-fy-in-hand-salary"
+                     class="text-base font-bold text-emerald-300 mt-1">
+                    ₹0
+                  </p>
+                </div>
+
+                <div class="rounded-xl bg-slate-900/60 p-4">
+                  <p class="text-xs text-slate-500">Tax Rate</p>
+                  <p id="previous-fy-tax-percentage"
+                     class="text-base font-bold text-sky-300 mt-1">
+                    0.00%
+                  </p>
+                </div>
+
+              </div>
+
+            </div>
+
+
+            <!-- DISCLAIMER -->
+            <div class="mt-5 rounded-xl border border-slate-700/60 bg-slate-900/40 p-4">
+
+              <div class="flex items-start gap-3">
+
+                <i class="fas fa-info-circle text-slate-400 mt-0.5"></i>
+
+                <div>
+                  <p class="text-sm font-semibold text-slate-300">
+                    Calculation scope
+                  </p>
+
+                  <p id="tax-calculation-scope"
+                     class="text-xs text-slate-500 mt-1 leading-5">
+                    This is an estimate for normal slab-rate income. It does not
+                    include special-rate income, capital gains, HRA exemptions,
+                    Chapter VI-A deductions, TDS credits or complete ITR calculations.
+                  </p>
+                </div>
+
+              </div>
+
+            </div>
+
+          </div>
+
+
+          <!-- ERROR -->
+          <p id="taxation-error"
+             class="hidden mt-5 rounded-xl border border-red-400/20 bg-red-400/10 px-4 py-3 text-sm text-red-300">
+          </p>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
 </div>
-</div>
+
+
+<style id="fintrack-taxation-ui-v2">
+
+/* =========================================================
+   FINTRACK TAXATION — CLEAN MODAL UI
+   ========================================================= */
+
+#taxation-modal {
+    position: fixed !important;
+    inset: 0 !important;
+    z-index: 9999 !important;
+
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+
+    padding: 24px !important;
+
+    background: rgba(2, 6, 23, .80) !important;
+
+    backdrop-filter: blur(10px) !important;
+    -webkit-backdrop-filter: blur(10px) !important;
+
+    overflow-y: auto !important;
+}
+
+#taxation-modal.hidden {
+    display: none !important;
+}
+
+
+/* Main modal width */
+#taxation-modal > div {
+    width: min(1180px, 100%) !important;
+    max-height: calc(100vh - 48px) !important;
+
+    margin: auto !important;
+
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+
+    scrollbar-width: thin;
+    scrollbar-color: rgba(96,165,250,.40) transparent;
+}
+
+
+/* Modal panel */
+#taxation-modal > div > div {
+    background:
+        linear-gradient(
+            145deg,
+            #111b2e,
+            #0d1728
+        ) !important;
+
+    border: 1px solid rgba(96,165,250,.18) !important;
+
+    border-radius: 22px !important;
+
+    box-shadow:
+        0 30px 80px rgba(0,0,0,.55) !important;
+
+    overflow: hidden !important;
+}
+
+
+/* Header */
+#taxation-modal .border-b {
+    background: rgba(15,23,42,.70) !important;
+
+    border-color: rgba(148,163,184,.12) !important;
+
+    padding: 20px 24px !important;
+}
+
+#taxation-modal h3 {
+    color: #f8fafc !important;
+
+    font-size: 1.3rem !important;
+
+    font-weight: 750 !important;
+}
+
+
+/* Close */
+#close-taxation-modal {
+    width: 40px !important;
+    height: 40px !important;
+
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+
+    border-radius: 11px !important;
+
+    background: rgba(148,163,184,.06) !important;
+
+    color: #94a3b8 !important;
+
+    transition: all .18s ease !important;
+}
+
+#close-taxation-modal:hover {
+    background: rgba(239,68,68,.12) !important;
+
+    color: #fca5a5 !important;
+
+    transform: rotate(90deg) !important;
+}
+
+
+/* =========================================================
+   TABS
+   ========================================================= */
+
+#annual-tax-tab,
+#period-tax-tab {
+    min-width: 145px !important;
+
+    padding: 10px 17px !important;
+
+    border-radius: 11px !important;
+
+    border: 1px solid rgba(148,163,184,.12) !important;
+
+    transition: all .18s ease !important;
+}
+
+#annual-tax-tab:hover,
+#period-tax-tab:hover {
+    transform: translateY(-1px) !important;
+}
+
+
+/* =========================================================
+   FORMS
+   ========================================================= */
+
+#annual-taxation-form,
+#period-taxation-form {
+    background: rgba(15,23,42,.45) !important;
+
+    border: 1px solid rgba(148,163,184,.09) !important;
+
+    border-radius: 15px !important;
+
+    padding: 20px !important;
+}
+
+#taxation-modal label {
+    color: #cbd5e1 !important;
+
+    font-size: .85rem !important;
+
+    font-weight: 650 !important;
+}
+
+#taxation-modal input[type="number"],
+#taxation-modal input[type="date"] {
+    min-height: 47px !important;
+
+    background: #0f172a !important;
+
+    color: #f8fafc !important;
+
+    border: 1px solid rgba(148,163,184,.18) !important;
+
+    border-radius: 11px !important;
+
+    outline: none !important;
+}
+
+#taxation-modal input[type="number"]:focus,
+#taxation-modal input[type="date"]:focus {
+    border-color: rgba(56,189,248,.70) !important;
+
+    box-shadow:
+        0 0 0 3px rgba(56,189,248,.10) !important;
+}
+
+
+/* Calculate button */
+#annual-taxation-form button[type="submit"],
+#period-taxation-form button[type="submit"] {
+    min-height: 47px !important;
+
+    border-radius: 11px !important;
+
+    background:
+        linear-gradient(
+            135deg,
+            #0284c7,
+            #2563eb
+        ) !important;
+
+    box-shadow:
+        0 8px 22px rgba(37,99,235,.20) !important;
+
+    transition: all .18s ease !important;
+}
+
+#annual-taxation-form button[type="submit"]:hover,
+#period-taxation-form button[type="submit"]:hover {
+    transform: translateY(-1px) !important;
+
+    box-shadow:
+        0 12px 28px rgba(37,99,235,.30) !important;
+}
+
+
+/* =========================================================
+   RESULTS
+   ========================================================= */
+
+.tax-results-container {
+    display: flex !important;
+
+    flex-direction: column !important;
+
+    gap: 16px !important;
+
+    margin-top: 22px !important;
+}
+
+
+/* Header */
+.tax-results-header {
+    display: flex !important;
+
+    align-items: center !important;
+
+    justify-content: space-between !important;
+
+    gap: 15px !important;
+
+    padding: 18px 20px !important;
+
+    border-radius: 16px !important;
+
+    background:
+        linear-gradient(
+            135deg,
+            rgba(14,165,233,.10),
+            rgba(37,99,235,.055)
+        ) !important;
+
+    border: 1px solid rgba(56,189,248,.14) !important;
+}
+
+.tax-results-header h3 {
+    margin: 0 !important;
+
+    color: #f8fafc !important;
+
+    font-size: 1.18rem !important;
+
+    font-weight: 750 !important;
+}
+
+.tax-results-header p {
+    margin: 4px 0 0 !important;
+
+    color: #94a3b8 !important;
+
+    font-size: .78rem !important;
+}
+
+.tax-year-badge {
+    padding: 6px 10px !important;
+
+    border-radius: 999px !important;
+
+    background: rgba(56,189,248,.09) !important;
+
+    border: 1px solid rgba(56,189,248,.18) !important;
+
+    color: #7dd3fc !important;
+
+    font-size: .68rem !important;
+
+    font-weight: 750 !important;
+}
+
+
+/* Recommendation */
+.tax-recommendation {
+    display: flex !important;
+
+    align-items: center !important;
+
+    gap: 12px !important;
+
+    padding: 13px 16px !important;
+
+    border-radius: 14px !important;
+
+    background: rgba(16,185,129,.065) !important;
+
+    border: 1px solid rgba(16,185,129,.16) !important;
+}
+
+.tax-recommendation-icon {
+    width: 36px !important;
+    height: 36px !important;
+
+    flex-shrink: 0 !important;
+
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+
+    border-radius: 10px !important;
+
+    background: rgba(16,185,129,.11) !important;
+
+    color: #6ee7b7 !important;
+}
+
+.tax-recommendation strong {
+    display: block !important;
+
+    color: #d1fae5 !important;
+
+    font-size: .87rem !important;
+}
+
+.tax-recommendation span {
+    display: block !important;
+
+    margin-top: 3px !important;
+
+    color: #94a3b8 !important;
+
+    font-size: .74rem !important;
+}
+
+
+/* =========================================================
+   REGIME CARDS
+   ========================================================= */
+
+.tax-regime-grid {
+    display: grid !important;
+
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+
+    gap: 15px !important;
+}
+
+.tax-regime-card {
+    padding: 18px !important;
+
+    border-radius: 18px !important;
+
+    background: #111b2e !important;
+
+    border: 1px solid rgba(148,163,184,.12) !important;
+
+    box-shadow:
+        0 10px 28px rgba(0,0,0,.14) !important;
+}
+
+.tax-regime-new {
+    border-color: rgba(56,189,248,.20) !important;
+}
+
+.tax-regime-old {
+    border-color: rgba(251,191,36,.18) !important;
+}
+
+
+.tax-regime-card-header {
+    display: flex !important;
+
+    align-items: flex-start !important;
+
+    justify-content: space-between !important;
+
+    margin-bottom: 14px !important;
+}
+
+.tax-regime-label {
+    color: #f8fafc !important;
+
+    font-size: 1rem !important;
+
+    font-weight: 750 !important;
+}
+
+.tax-regime-subtitle {
+    margin-top: 3px !important;
+
+    color: #64748b !important;
+
+    font-size: .69rem !important;
+}
+
+.tax-regime-badge {
+    padding: 4px 8px !important;
+
+    border-radius: 999px !important;
+
+    font-size: .62rem !important;
+
+    font-weight: 800 !important;
+
+    background: rgba(148,163,184,.07) !important;
+
+    color: #94a3b8 !important;
+}
+
+.tax-regime-new .tax-regime-badge {
+    background: rgba(56,189,248,.09) !important;
+
+    color: #7dd3fc !important;
+}
+
+.tax-regime-old .tax-regime-badge {
+    background: rgba(251,191,36,.09) !important;
+
+    color: #fcd34d !important;
+}
+
+
+/* =========================================================
+   FINAL TAX BOX
+   ========================================================= */
+
+.tax-final-box {
+    padding: 15px !important;
+
+    margin-bottom: 14px !important;
+
+    border-radius: 13px !important;
+
+    background: rgba(2,6,23,.46) !important;
+
+    border: 1px solid rgba(148,163,184,.07) !important;
+}
+
+.tax-final-box span {
+    display: block !important;
+
+    color: #94a3b8 !important;
+
+    font-size: .68rem !important;
+
+    font-weight: 650 !important;
+
+    text-transform: uppercase !important;
+
+    letter-spacing: .06em !important;
+}
+
+.tax-final-box strong {
+    display: block !important;
+
+    margin-top: 4px !important;
+
+    color: #f8fafc !important;
+
+    font-size: 1.7rem !important;
+
+    line-height: 1.15 !important;
+
+    font-weight: 800 !important;
+}
+
+.tax-regime-new .tax-final-box strong {
+    color: #7dd3fc !important;
+}
+
+.tax-regime-old .tax-final-box strong {
+    color: #fcd34d !important;
+}
+
+.tax-final-box small {
+    display: block !important;
+
+    margin-top: 5px !important;
+
+    color: #64748b !important;
+
+    font-size: .70rem !important;
+}
+
+
+/* =========================================================
+   SUMMARY VALUES
+   ========================================================= */
+
+.tax-income-summary {
+    display: grid !important;
+
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+
+    gap: 7px !important;
+
+    margin-bottom: 16px !important;
+}
+
+.tax-income-summary > div {
+    padding: 10px !important;
+
+    border-radius: 10px !important;
+
+    background: rgba(148,163,184,.035) !important;
+
+    border: 1px solid rgba(148,163,184,.06) !important;
+}
+
+.tax-income-summary span {
+    display: block !important;
+
+    color: #64748b !important;
+
+    font-size: .64rem !important;
+}
+
+.tax-income-summary strong {
+    display: block !important;
+
+    margin-top: 3px !important;
+
+    color: #e2e8f0 !important;
+
+    font-size: .78rem !important;
+}
+
+
+/* =========================================================
+   BREAKDOWN
+   ========================================================= */
+
+.tax-breakdown-title {
+    margin-bottom: 8px !important;
+
+    color: #cbd5e1 !important;
+
+    font-size: .74rem !important;
+
+    font-weight: 750 !important;
+
+    text-transform: uppercase !important;
+
+    letter-spacing: .055em !important;
+}
+
+.tax-breakdown-grid {
+    display: flex !important;
+
+    flex-direction: column !important;
+
+    border-radius: 11px !important;
+
+    overflow: hidden !important;
+
+    border: 1px solid rgba(148,163,184,.065) !important;
+}
+
+.tax-breakdown-item {
+    display: flex !important;
+
+    align-items: center !important;
+
+    justify-content: space-between !important;
+
+    gap: 12px !important;
+
+    padding: 8px 10px !important;
+
+    background: rgba(148,163,184,.02) !important;
+
+    border-bottom: 1px solid rgba(148,163,184,.05) !important;
+}
+
+.tax-breakdown-item:last-child {
+    border-bottom: none !important;
+}
+
+.tax-breakdown-item span {
+    color: #94a3b8 !important;
+
+    font-size: .69rem !important;
+}
+
+.tax-breakdown-item strong {
+    color: #e2e8f0 !important;
+
+    font-size: .70rem !important;
+
+    font-weight: 700 !important;
+
+    white-space: nowrap !important;
+}
+
+.tax-breakdown-item .tax-positive {
+    color: #6ee7b7 !important;
+}
+
+
+/* =========================================================
+   MONTHLY
+   ========================================================= */
+
+.tax-monthly-box {
+    display: grid !important;
+
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+
+    gap: 8px !important;
+
+    margin-top: 12px !important;
+}
+
+.tax-monthly-box > div {
+    padding: 10px !important;
+
+    border-radius: 11px !important;
+
+    background: rgba(16,185,129,.045) !important;
+
+    border: 1px solid rgba(16,185,129,.09) !important;
+}
+
+.tax-monthly-box span {
+    display: block !important;
+
+    color: #64748b !important;
+
+    font-size: .64rem !important;
+}
+
+.tax-monthly-box strong {
+    display: block !important;
+
+    margin-top: 3px !important;
+
+    color: #6ee7b7 !important;
+
+    font-size: .78rem !important;
+}
+
+
+/* =========================================================
+   PERIOD SUMMARY
+   ========================================================= */
+
+.tax-period-summary {
+    display: grid !important;
+
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+
+    gap: 9px !important;
+}
+
+.tax-period-summary > div {
+    padding: 12px !important;
+
+    border-radius: 12px !important;
+
+    background: rgba(148,163,184,.035) !important;
+
+    border: 1px solid rgba(148,163,184,.07) !important;
+}
+
+.tax-period-summary span {
+    display: block !important;
+
+    color: #64748b !important;
+
+    font-size: .65rem !important;
+}
+
+.tax-period-summary strong {
+    display: block !important;
+
+    margin-top: 3px !important;
+
+    color: #e2e8f0 !important;
+
+    font-size: .82rem !important;
+}
+
+
+/* =========================================================
+   DISCLAIMER
+   ========================================================= */
+
+.tax-disclaimer {
+    display: flex !important;
+
+    gap: 10px !important;
+
+    padding: 12px 14px !important;
+
+    border-radius: 12px !important;
+
+    background: rgba(148,163,184,.025) !important;
+
+    border: 1px solid rgba(148,163,184,.06) !important;
+}
+
+.tax-disclaimer > i {
+    color: #64748b !important;
+
+    margin-top: 2px !important;
+}
+
+.tax-disclaimer strong {
+    color: #cbd5e1 !important;
+
+    font-size: .73rem !important;
+}
+
+.tax-disclaimer p {
+    margin: 3px 0 0 !important;
+
+    color: #64748b !important;
+
+    font-size: .67rem !important;
+
+    line-height: 1.5 !important;
+}
+
+
+/* Previous FY */
+.tax-previous-section h4 {
+    margin: 0 0 9px !important;
+
+    color: #cbd5e1 !important;
+
+    font-size: .80rem !important;
+
+    font-weight: 750 !important;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 850px) {
+
+    #taxation-modal {
+        padding: 12px !important;
+    }
+
+    #taxation-modal > div {
+        max-height: calc(100vh - 24px) !important;
+    }
+
+    .tax-regime-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+}
+
+@media (max-width: 600px) {
+
+    #taxation-modal {
+        padding: 7px !important;
+    }
+
+    #taxation-modal > div {
+        max-height: calc(100vh - 14px) !important;
+    }
+
+    #taxation-modal > div > div {
+        border-radius: 17px !important;
+    }
+
+    .tax-results-header {
+        align-items: flex-start !important;
+        flex-direction: column !important;
+    }
+
+    .tax-income-summary,
+    .tax-monthly-box,
+    .tax-period-summary {
+        grid-template-columns: 1fr !important;
+    }
+
+}
+
+
+/* =========================================================
+   TAXATION CONTENT — ONLY THIS AREA SCROLLS
+   ========================================================= */
+
+#taxation-modal > div > div > div.max-h-\[calc\(94vh-105px\)\] {
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+
+    scroll-behavior: auto !important;
+
+    scrollbar-width: thin;
+    scrollbar-color: rgba(96,165,250,.35) transparent;
+}
+
+
+/* Keep the Tax Calculator header visible */
+#taxation-modal > div > div > .border-b {
+    flex-shrink: 0 !important;
+}
+
+
+/* The modal itself must never become the content scroller */
+#taxation-modal {
+    overflow: hidden !important;
+}
+
+#taxation-modal > div {
+    overflow: hidden !important;
+}
+
+#taxation-modal > div > div {
+    overflow: hidden !important;
+}
+
+</style>
+
+
+
+<style id="fintrack-taxation-opening-fix">
+
+/* =========================================================
+   FINTRACK TAXATION — PREMIUM MODAL OPENING / POSITIONING
+   ========================================================= */
+
+#taxation-modal {
+    position: fixed !important;
+    inset: 0 !important;
+    z-index: 2147483000 !important;
+
+    width: 100vw !important;
+    height: 100vh !important;
+
+    display: flex !important;
+    align-items: flex-start !important;
+    justify-content: center !important;
+
+    padding: 125px 24px 24px !important;
+    box-sizing: border-box !important;
+
+    background: rgba(2, 6, 23, .78) !important;
+
+    backdrop-filter: blur(14px) !important;
+    -webkit-backdrop-filter: blur(14px) !important;
+
+    overflow: hidden !important;
+}
+
+#taxation-modal.hidden {
+    display: none !important;
+}
+
+
+/* =========================================================
+   OUTER MODAL WRAPPER
+   ========================================================= */
+
+#taxation-modal > div {
+    position: relative !important;
+
+    width: min(1180px, 100%) !important;
+    max-height: calc(100vh - 149px) !important;
+
+    margin: 0 auto !important;
+
+    box-sizing: border-box !important;
+
+    overflow-x: hidden !important;
+    overflow-y: hidden !important;
+
+    scrollbar-width: thin;
+    scrollbar-color: rgba(96,165,250,.38) transparent;
+
+    transform-origin: center center !important;
+}
+
+
+/* =========================================================
+   ACTUAL MODAL PANEL
+   ========================================================= */
+
+#taxation-modal > div > div {
+    position: relative !important;
+
+    width: 100% !important;
+
+    margin: 0 !important;
+
+    border-radius: 22px !important;
+
+    overflow: hidden !important;
+
+    box-sizing: border-box !important;
+}
+
+
+/* =========================================================
+   MODAL HEADER
+   ========================================================= */
+
+#taxation-modal > div > div > .border-b {
+    position: sticky !important;
+    top: 0 !important;
+
+    z-index: 50 !important;
+
+    background: rgba(15,23,42,.96) !important;
+
+    backdrop-filter: blur(18px) !important;
+    -webkit-backdrop-filter: blur(18px) !important;
+}
+
+
+/* =========================================================
+   MODAL CONTENT SCROLLER
+   ========================================================= */
+
+#taxation-modal > div > div > div.max-h-\[calc\(94vh-105px\)\] {
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+
+    scrollbar-width: thin;
+    scrollbar-color: rgba(96,165,250,.30) transparent;
+}
+
+
+/* =========================================================
+   OPEN ANIMATION
+   ========================================================= */
+
+#taxation-modal:not(.hidden) > div {
+    animation: fintrackTaxModalOpen .24s cubic-bezier(.22,1,.36,1) both !important;
+}
+
+@keyframes fintrackTaxModalOpen {
+    from {
+        opacity: 0;
+        transform: translateY(18px) scale(.975);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+
+/* =========================================================
+   BACKDROP ANIMATION
+   ========================================================= */
+
+#taxation-modal:not(.hidden) {
+    animation: fintrackTaxBackdrop .18s ease-out both !important;
+}
+
+@keyframes fintrackTaxBackdrop {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+
+/* =========================================================
+   CLOSE BUTTON
+   ========================================================= */
+
+#close-taxation-modal {
+    transition:
+        background .18s ease,
+        color .18s ease,
+        border-color .18s ease,
+        transform .18s ease !important;
+}
+
+#close-taxation-modal:hover {
+    transform: rotate(90deg) scale(1.04) !important;
+}
+
+
+/* =========================================================
+   BODY LOCK
+   ========================================================= */
+
+body:has(#taxation-modal:not(.hidden)) {
+    overflow: hidden !important;
+}
+
+
+/* =========================================================
+   DESKTOP
+   ========================================================= */
+
+@media (min-width: 851px) {
+
+    #taxation-modal {
+        padding: 125px 24px 24px !important;
+    }
+
+    #taxation-modal > div {
+        max-height: calc(100vh - 149px) !important;
+    }
+
+}
+
+
+/* =========================================================
+   LAPTOP / TABLET
+   ========================================================= */
+
+@media (max-width: 850px) {
+
+    #taxation-modal {
+        padding: 14px !important;
+    }
+
+    #taxation-modal > div {
+        width: 100% !important;
+        max-height: calc(100vh - 28px) !important;
+    }
+
+}
+
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 600px) {
+
+    #taxation-modal {
+        padding: 8px !important;
+    }
+
+    #taxation-modal > div {
+        max-height: calc(100vh - 16px) !important;
+    }
+
+    #taxation-modal > div > div {
+        border-radius: 17px !important;
+    }
+
+}
+
+</style>
+
+
 {% endblock content %}
 
+
+
+
+{% block extra_body_js %}
 {# Manual embedding of JSON data into script tags #}
 <script id="chart_labels_data" type="application/json">
 {{ chart_labels_json|safe }}
@@ -187,45 +2039,8 @@
 {{ chart_type_json|safe }}
 </script>
 
-
-{% block extra_body_js %}
   <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Navbar JavaScript - copied directly from home.html
-        const userMenuButton = document.getElementById('user-menu-button');
-        const userDropdown = document.getElementById('user-dropdown');
-        const mobileMenuButton = document.getElementById('mobile-menu-button');
-        const mobileMenu = document.getElementById('mobile-menu');
-
-        // Toggle user dropdown
-        if (userMenuButton) {
-          userMenuButton.addEventListener('click', function() {
-            const isExpanded = userMenuButton.getAttribute('aria-expanded') === 'true';
-            userMenuButton.setAttribute('aria-expanded', !isExpanded);
-            userDropdown.classList.toggle('hidden');
-          });
-        }
-
-        // Toggle mobile menu
-        if (mobileMenuButton) {
-          mobileMenuButton.addEventListener('click', function() {
-            const isExpanded = mobileMenuButton.getAttribute('aria-expanded') === 'true';
-            mobileMenuButton.setAttribute('aria-expanded', !isExpanded);
-            mobileMenu.classList.toggle('hidden');
-            mobileMenuButton.children[0].classList.toggle('hidden'); // Icon open
-            mobileMenuButton.children[1].classList.toggle('hidden'); // Icon close
-          });
-        }
-
-        // Close dropdowns if clicked outside
-        window.addEventListener('click', function(event) {
-          if (userDropdown && !userMenuButton.contains(event.target) && !userDropdown.contains(event.target)) {
-            userDropdown.classList.add('hidden');
-            if (userMenuButton) userMenuButton.setAttribute('aria-expanded', false);
-          }
-          // Mobile menu closes only via its button, generally not by clicking outside
-        });
-
         // Function for animating count-up numbers
         function animateCount(element, endValue) {
           const duration = 750, frameRate = 13, totalFrames = duration/frameRate;
@@ -301,133 +2116,935 @@
           }
         });
 
-        // Taxation Modal JavaScript
-        const taxationForm = document.getElementById('taxation-form');
-        const annualTaxationForm = document.getElementById('annual-taxation-form');
-        const taxationResults = document.getElementById('taxation-results');
-        const dateError = document.getElementById('date-error');
+        // Taxation Calculator
 
-        if (taxationForm) {
-            taxationForm.addEventListener('submit', async function(e) {
-                e.preventDefault();
-                dateError.classList.add('hidden'); // Hide any previous error
+const taxationModal = document.getElementById('taxation-modal');
+const closeTaxationModal = document.getElementById('close-taxation-modal');
 
-                const startDate = document.getElementById('start_date').value;
-                const endDate = document.getElementById('end_date').value;
+const annualTaxationForm = document.getElementById('annual-taxation-form');
+const periodTaxationForm = document.getElementById('period-taxation-form');
 
-                // Date validation: End date must be at least one month after the start date
-                const start = new Date(startDate);
-                const end = new Date(endDate);
-                start.setMonth(start.getMonth() + 1); // Add one month to start date
-                if (end < start) {
-                    dateError.classList.remove('hidden');
-                    return;
-                }
+const annualTaxTab = document.getElementById('annual-tax-tab');
+const periodTaxTab = document.getElementById('period-tax-tab');
 
-                const formData = new FormData(taxationForm);
-                const data = Object.fromEntries(formData.entries());
+const taxationResults = document.getElementById('taxation-results');
+const taxationError = document.getElementById('taxation-error');
+const dateError = document.getElementById('date-error');
 
-                try {
-                    const response = await fetch('/calculate-period-tax/', { // Replace with your actual endpoint
-                        method: 'POST',
-                        headers: {
-                            'X-CSRFToken': data.csrfmiddlewaretoken,
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(data)
-                    });
-                    const result = await response.json();
-                    if (response.ok) {
-                        document.getElementById('period-net-income-display').classList.remove('hidden');
-                        document.getElementById('period-net-income').textContent = parseFloat(result.period_net_income).toLocaleString('en-IN', {style: 'currency', currency: 'INR', minimumFractionDigits: 2});
+const taxationButton = document.getElementById('taxation-button');
 
-                        document.getElementById('current-fy-taxable-income').textContent = parseFloat(result.current_fy_taxable_income).toLocaleString('en-IN', {style: 'currency', currency: 'INR', minimumFractionDigits: 2});
-                        document.getElementById('current-fy-total-tax').textContent = parseFloat(result.current_fy_total_tax).toLocaleString('en-IN', {style: 'currency', currency: 'INR', minimumFractionDigits: 2});
-                        document.getElementById('current-fy-in-hand-salary').textContent = parseFloat(result.current_fy_in_hand_salary).toLocaleString('en-IN', {style: 'currency', currency: 'INR', minimumFractionDigits: 2});
-                        document.getElementById('current-fy-tax-percentage').textContent = parseFloat(result.current_fy_tax_percentage).toFixed(2);
 
-                        // Show/hide previous FY based on data availability
-                        if (result.previous_fy_taxable_income !== undefined && result.previous_fy_taxable_income !== null) {
-                            document.getElementById('previous-fy-heading').classList.remove('hidden');
-                            document.getElementById('previous-fy-taxable-income-display').classList.remove('hidden');
-                            document.getElementById('previous-fy-total-tax-display').classList.remove('hidden');
-                            document.getElementById('previous-fy-in-hand-salary-display').classList.remove('hidden');
-                            document.getElementById('previous-fy-tax-percentage-display').classList.remove('hidden');
+function openTaxationModal() {
 
-                            document.getElementById('previous-fy-taxable-income').textContent = parseFloat(result.previous_fy_taxable_income).toLocaleString('en-IN', {style: 'currency', currency: 'INR', minimumFractionDigits: 2});
-                            document.getElementById('previous-fy-total-tax').textContent = parseFloat(result.previous_fy_total_tax).toLocaleString('en-IN', {style: 'currency', currency: 'INR', minimumFractionDigits: 2});
-                            document.getElementById('previous-fy-in-hand-salary').textContent = parseFloat(result.previous_fy_in_hand_salary).toLocaleString('en-IN', {style: 'currency', currency: 'INR', minimumFractionDigits: 2});
-                            document.getElementById('previous-fy-tax-percentage').textContent = parseFloat(result.previous_fy_tax_percentage).toFixed(2);
-                        } else {
-                            document.getElementById('previous-fy-heading').classList.add('hidden');
-                            document.getElementById('previous-fy-taxable-income-display').classList.add('hidden');
-                            document.getElementById('previous-fy-total-tax-display').classList.add('hidden');
-                            document.getElementById('previous-fy-in-hand-salary-display').classList.add('hidden');
-                            document.getElementById('previous-fy-tax-percentage-display').classList.add('hidden');
-                        }
+  if (!taxationModal) return;
 
-                        taxationResults.classList.remove('hidden');
-                    } else {
-                        // Using a custom modal/message box instead of alert()
-                        console.error('Error calculating period tax: ' + (result.error || 'Unknown error'));
-                        // You would implement a custom modal here, e.g.:
-                        // showCustomModal('Error', 'Error calculating period tax: ' + (result.error || 'Unknown error'));
-                    }
-                } catch (error) {
-                    console.error('Fetch error:', error);
-                    // You would implement a custom modal here, e.g.:
-                    // showCustomModal('Error', 'An error occurred while communicating with the server.');
-                }
-            });
+  /* Open the taxation module */
+  taxationModal.classList.remove('hidden');
+
+  taxationModal.setAttribute(
+    'aria-hidden',
+    'false'
+  );
+
+  document.body.classList.add(
+    'overflow-hidden'
+  );
+
+  /*
+   * Find the actual Tax Calculator header.
+   * This is the starting point of the taxation module.
+   */
+  const taxationHeader =
+    taxationModal.querySelector(
+      ':scope > div > div > .border-b'
+    );
+
+  /*
+   * Do exactly what the Calculate Tax button does:
+   * automatically scroll the relevant area to the
+   * requested section.
+   */
+  requestAnimationFrame(() => {
+
+    if (taxationHeader) {
+
+      taxationHeader.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start',
+        inline: 'nearest'
+      });
+
+    }
+
+  });
+
+}
+
+
+function closeTaxationModalHandler() {
+
+  if (!taxationModal) return;
+
+  taxationModal.classList.add('hidden');
+  taxationModal.setAttribute('aria-hidden', 'true');
+
+  document.body.classList.remove('overflow-hidden');
+}
+
+
+if (taxationButton) {
+  taxationButton.addEventListener('click', openTaxationModal);
+}
+
+
+if (closeTaxationModal) {
+  closeTaxationModal.addEventListener(
+    'click',
+    closeTaxationModalHandler
+  );
+}
+
+
+if (taxationModal) {
+
+  taxationModal.addEventListener('click', function(e) {
+
+    if (e.target === taxationModal) {
+      closeTaxationModalHandler();
+    }
+
+  });
+
+}
+
+
+document.addEventListener('keydown', function(e) {
+
+  if (
+    e.key === 'Escape' &&
+    taxationModal &&
+    !taxationModal.classList.contains('hidden')
+  ) {
+    closeTaxationModalHandler();
+  }
+
+});
+
+
+function updateTaxTabs(activeTab) {
+
+  const tabs = [annualTaxTab, periodTaxTab];
+
+  tabs.forEach(tab => {
+
+    if (!tab) return;
+
+    tab.classList.remove(
+      'active',
+      'bg-sky-500',
+      'text-white',
+      'shadow-lg'
+    );
+
+    tab.classList.add(
+      'text-slate-400'
+    );
+
+  });
+
+
+  if (activeTab) {
+
+    activeTab.classList.add(
+      'active',
+      'bg-sky-500',
+      'text-white',
+      'shadow-lg'
+    );
+
+    activeTab.classList.remove(
+      'text-slate-400'
+    );
+
+  }
+
+}
+
+
+function clearTaxResults() {
+
+  if (taxationResults) {
+    taxationResults.classList.add('hidden');
+  }
+
+  if (taxationError) {
+    taxationError.classList.add('hidden');
+    taxationError.textContent = '';
+  }
+
+}
+
+
+function showAnnualTaxForm() {
+
+  if (annualTaxationForm) {
+    annualTaxationForm.classList.remove('hidden');
+  }
+
+  if (periodTaxationForm) {
+    periodTaxationForm.classList.add('hidden');
+  }
+
+  updateTaxTabs(annualTaxTab);
+
+  clearTaxResults();
+}
+
+
+function showPeriodTaxForm() {
+
+  if (annualTaxationForm) {
+    annualTaxationForm.classList.add('hidden');
+  }
+
+  if (periodTaxationForm) {
+    periodTaxationForm.classList.remove('hidden');
+  }
+
+  updateTaxTabs(periodTaxTab);
+
+  clearTaxResults();
+}
+
+
+if (annualTaxTab) {
+  annualTaxTab.addEventListener(
+    'click',
+    showAnnualTaxForm
+  );
+}
+
+
+if (periodTaxTab) {
+  periodTaxTab.addEventListener(
+    'click',
+    showPeriodTaxForm
+  );
+}
+
+
+function getCsrfToken(form) {
+
+  const csrfInput = form.querySelector(
+    '[name="csrfmiddlewaretoken"]'
+  );
+
+  return csrfInput
+    ? csrfInput.value
+    : '';
+}
+
+
+function formatCurrency(value) {
+
+  const number = Number(value || 0);
+
+  return number.toLocaleString(
+    'en-IN',
+    {
+      style: 'currency',
+      currency: 'INR',
+      maximumFractionDigits: 0
+    }
+  );
+}
+
+
+function setTaxText(id, value) {
+
+  const element = document.getElementById(id);
+
+  if (element) {
+    element.textContent = value;
+  }
+
+}
+
+
+function displayTaxResults(result, isPeriod) {
+
+  if (!result) {
+    if (taxationError) {
+      taxationError.textContent = 'Invalid tax calculation response.';
+      taxationError.classList.remove('hidden');
+    }
+    return;
+  }
+
+  if (taxationError) {
+    taxationError.classList.add('hidden');
+  }
+
+  // -------------------------------------------------------
+  // HELPERS
+  // -------------------------------------------------------
+
+  const money = (value) => {
+    return formatCurrency(Number(value || 0));
+  };
+
+  const number = (value) => {
+    return Number(value || 0);
+  };
+
+  const taxableIncome = (data) => {
+    return number(
+      data.taxable_income_after_deduction ??
+      data.taxable_income ??
+      0
+    );
+  };
+
+  const taxAmount = (data) => {
+    return number(data.total_tax_amount ?? 0);
+  };
+
+  const regimeName = (regime) => {
+    return regime === 'new'
+      ? 'New Tax Regime'
+      : 'Old Tax Regime';
+  };
+
+  const regimeClass = (regime) => {
+    return regime === 'new'
+      ? 'tax-regime-new'
+      : 'tax-regime-old';
+  };
+
+  const renderBreakdown = (data) => {
+
+    const taxable = taxableIncome(data);
+
+    return `
+      <div class="tax-breakdown-grid">
+
+        <div class="tax-breakdown-item">
+          <span>Gross Income</span>
+          <strong>${money(data.gross_income)}</strong>
+        </div>
+
+        <div class="tax-breakdown-item">
+          <span>Standard Deduction</span>
+          <strong>− ${money(data.standard_deduction)}</strong>
+        </div>
+
+        <div class="tax-breakdown-item">
+          <span>Taxable Income</span>
+          <strong>${money(taxable)}</strong>
+        </div>
+
+        <div class="tax-breakdown-item">
+          <span>Slab Tax</span>
+          <strong>${money(data.slab_tax)}</strong>
+        </div>
+
+        <div class="tax-breakdown-item">
+          <span>87A Rebate</span>
+          <strong class="tax-positive">
+            − ${money(data.rebate)}
+          </strong>
+        </div>
+
+        <div class="tax-breakdown-item">
+          <span>Marginal Relief</span>
+          <strong class="tax-positive">
+            − ${money(data.marginal_relief)}
+          </strong>
+        </div>
+
+        <div class="tax-breakdown-item">
+          <span>Surcharge</span>
+          <strong>${money(data.surcharge)}</strong>
+        </div>
+
+        <div class="tax-breakdown-item">
+          <span>Health & Education Cess</span>
+          <strong>${money(data.cess)}</strong>
+        </div>
+
+      </div>
+    `;
+  };
+
+
+  const renderRegimeCard = (data, regime) => {
+
+    if (!data) {
+      return '';
+    }
+
+    const totalTax = taxAmount(data);
+    const taxable = taxableIncome(data);
+
+    return `
+      <div class="tax-regime-card ${regimeClass(regime)}">
+
+        <div class="tax-regime-card-header">
+
+          <div>
+            <div class="tax-regime-label">
+              ${regimeName(regime)}
+            </div>
+
+            <div class="tax-regime-subtitle">
+              ${regime === 'new'
+                ? 'Default regime • AY 2026–27'
+                : 'Alternative regime • AY 2026–27'}
+            </div>
+          </div>
+
+          <span class="tax-regime-badge">
+            ${regime === 'new' ? 'NEW' : 'OLD'}
+          </span>
+
+        </div>
+
+
+        <div class="tax-final-box">
+
+          <span>Final Tax Payable</span>
+
+          <strong>
+            ${money(totalTax)}
+          </strong>
+
+          <small>
+            Effective tax rate:
+            ${number(data.tax_percentage).toFixed(2)}%
+          </small>
+
+        </div>
+
+
+        <div class="tax-income-summary">
+
+          <div>
+            <span>Gross Income</span>
+            <strong>${money(data.gross_income)}</strong>
+          </div>
+
+          <div>
+            <span>Taxable Income</span>
+            <strong>${money(taxable)}</strong>
+          </div>
+
+          <div>
+            <span>Annual In-Hand</span>
+            <strong>${money(data.in_hand_salary)}</strong>
+          </div>
+
+          <div>
+            <span>Monthly Tax</span>
+            <strong>${money(data.monthly_tax)}</strong>
+          </div>
+
+        </div>
+
+
+        <div class="tax-breakdown-title">
+          Tax Breakdown
+        </div>
+
+        ${renderBreakdown(data)}
+
+
+        <div class="tax-monthly-box">
+
+          <div>
+            <span>Monthly Tax</span>
+            <strong>${money(data.monthly_tax)}</strong>
+          </div>
+
+          <div>
+            <span>Monthly In-Hand</span>
+            <strong>${money(data.monthly_in_hand)}</strong>
+          </div>
+
+        </div>
+
+      </div>
+    `;
+  };
+
+
+  // -------------------------------------------------------
+  // ANNUAL CALCULATION
+  // -------------------------------------------------------
+
+  if (!isPeriod) {
+
+    if (!result.new_regime || !result.old_regime) {
+
+      if (taxationError) {
+        taxationError.textContent =
+          'The tax calculation returned an incomplete response. Please try again.';
+        taxationError.classList.remove('hidden');
+      }
+
+      return;
+    }
+
+
+    const newRegime = result.new_regime;
+    const oldRegime = result.old_regime;
+
+    const recommended =
+      result.recommended_regime || 'New Regime';
+
+    const saving = number(result.tax_saving);
+
+    taxationResults.innerHTML = `
+
+      <div class="tax-results-container">
+
+        <div class="tax-results-header">
+
+          <div>
+            <h3>
+              Annual Salary Tax Estimate
+            </h3>
+
+            <p>
+              ${result.tax_year || 'AY 2026–27'}
+              ${result.financial_year
+                ? ' • ' + result.financial_year
+                : ''}
+            </p>
+          </div>
+
+          <span class="tax-year-badge">
+            ${result.tax_year || 'AY 2026–27'}
+          </span>
+
+        </div>
+
+
+        <div class="tax-recommendation">
+
+          <div class="tax-recommendation-icon">
+            <i class="fas fa-lightbulb"></i>
+          </div>
+
+          <div>
+
+            <strong>
+              Recommended: ${recommended}
+            </strong>
+
+            <span>
+              ${
+                saving > 0
+                  ? `You save ${money(saving)} compared with the other regime.`
+                  : 'Both regimes result in the same tax liability.'
+              }
+            </span>
+
+          </div>
+
+        </div>
+
+
+        <div class="tax-regime-grid">
+
+          ${renderRegimeCard(newRegime, 'new')}
+
+          ${renderRegimeCard(oldRegime, 'old')}
+
+        </div>
+
+
+        <div class="tax-disclaimer">
+
+          <i class="fas fa-circle-info"></i>
+
+          <div>
+
+            <strong>How this estimate works</strong>
+
+            <p>
+              The calculation uses the AY 2026–27 income-tax slabs,
+              applicable standard deduction, Section 87A rebate,
+              marginal relief, surcharge and 4% Health & Education Cess.
+              Personal expenses tracked in FinTrack are not automatically
+              treated as income-tax deductions.
+            </p>
+
+          </div>
+
+        </div>
+
+      </div>
+    `;
+
+  }
+
+
+  // -------------------------------------------------------
+  // PERIOD CALCULATION
+  // -------------------------------------------------------
+
+  else {
+
+    if (
+      !result.current_fy ||
+      !result.current_fy.new_regime ||
+      !result.current_fy.old_regime
+    ) {
+
+      if (taxationError) {
+        taxationError.textContent =
+          'The period tax calculation returned an incomplete response.';
+        taxationError.classList.remove('hidden');
+      }
+
+      return;
+    }
+
+
+    const currentNew = result.current_fy.new_regime;
+    const currentOld = result.current_fy.old_regime;
+
+    const recommended =
+      result.recommended_regime || 'New Regime';
+
+    const saving = number(result.tax_saving);
+
+
+    taxationResults.innerHTML = `
+
+      <div class="tax-results-container">
+
+        <div class="tax-results-header">
+
+          <div>
+            <h3>
+              Financial Year Tax Estimate
+            </h3>
+
+            <p>
+              ${result.tax_year || 'AY 2026–27'}
+              ${result.financial_year
+                ? ' • ' + result.financial_year
+                : ''}
+            </p>
+          </div>
+
+          <span class="tax-year-badge">
+            ${result.tax_year || 'AY 2026–27'}
+          </span>
+
+        </div>
+
+
+        <div class="tax-period-summary">
+
+          <div>
+            <span>Period Income</span>
+            <strong>${money(result.period_income)}</strong>
+          </div>
+
+          <div>
+            <span>Period Expenses</span>
+            <strong>${money(result.period_expenses)}</strong>
+          </div>
+
+          <div>
+            <span>Net Cash Flow</span>
+            <strong>${money(result.period_net_income)}</strong>
+          </div>
+
+        </div>
+
+
+        <div class="tax-recommendation">
+
+          <div class="tax-recommendation-icon">
+            <i class="fas fa-lightbulb"></i>
+          </div>
+
+          <div>
+
+            <strong>
+              Recommended: ${recommended}
+            </strong>
+
+            <span>
+              ${
+                saving > 0
+                  ? `Estimated annual tax saving: ${money(saving)}.`
+                  : 'Both regimes result in the same tax liability.'
+              }
+            </span>
+
+          </div>
+
+        </div>
+
+
+        <div class="tax-regime-grid">
+
+          ${renderRegimeCard(currentNew, 'new')}
+
+          ${renderRegimeCard(currentOld, 'old')}
+
+        </div>
+
+
+        ${
+          result.previous_fy &&
+          result.previous_fy.new_regime &&
+          result.previous_fy.old_regime
+          ? `
+            <div class="tax-previous-section">
+
+              <h4>
+                Previous Financial Year
+              </h4>
+
+              <div class="tax-regime-grid">
+
+                ${renderRegimeCard(
+                  result.previous_fy.new_regime,
+                  'new'
+                )}
+
+                ${renderRegimeCard(
+                  result.previous_fy.old_regime,
+                  'old'
+                )}
+
+              </div>
+
+            </div>
+          `
+          : ''
         }
 
-        if (annualTaxationForm) {
-            annualTaxationForm.addEventListener('submit', async function(e) {
-                e.preventDefault();
-                dateError.classList.add('hidden'); // Hide any previous error
 
-                const formData = new FormData(annualTaxationForm);
-                const data = Object.fromEntries(formData.entries());
+        <div class="tax-disclaimer">
 
-                try {
-                    const response = await fetch('/estimate-annual-tax/', { // Replace with your actual endpoint
-                        method: 'POST',
-                        headers: {
-                            'X-CSRFToken': data.csrfmiddlewaretoken,
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(data)
-                    });
-                    const result = await response.json();
-                    if (response.ok) {
-                        document.getElementById('period-net-income-display').classList.add('hidden'); // Hide period specific results
+          <i class="fas fa-circle-info"></i>
 
-                        document.getElementById('current-fy-taxable-income').textContent = parseFloat(result.current_fy_taxable_income).toLocaleString('en-IN', {style: 'currency', currency: 'INR', minimumFractionDigits: 2});
-                        document.getElementById('current-fy-total-tax').textContent = parseFloat(result.current_fy_total_tax).toLocaleString('en-IN', {style: 'currency', currency: 'INR', minimumFractionDigits: 2});
-                        document.getElementById('current-fy-in-hand-salary').textContent = parseFloat(result.current_fy_in_hand_salary).toLocaleString('en-IN', {style: 'currency', currency: 'INR', minimumFractionDigits: 2});
-                        document.getElementById('current-fy-tax-percentage').textContent = parseFloat(result.current_fy_tax_percentage).toFixed(2);
+          <div>
 
-                        // For annual salary, typically only current FY is relevant for this calculation
-                        document.getElementById('previous-fy-heading').classList.add('hidden');
-                        document.getElementById('previous-fy-taxable-income-display').classList.add('hidden');
-                        document.getElementById('previous-fy-total-tax-display').classList.add('hidden');
-                        document.getElementById('previous-fy-in-hand-salary-display').classList.add('hidden');
-                        document.getElementById('previous-fy-tax-percentage-display').classList.add('hidden');
+            <strong>Important</strong>
 
-                        taxationResults.classList.remove('hidden');
-                    } else {
-                        // Using a custom modal/message box instead of alert()
-                        console.error('Error estimating annual tax: ' + (result.error || 'Unknown error'));
-                        // You would implement a custom modal here, e.g.:
-                        // showCustomModal('Error', 'Error estimating annual tax: ' + (result.error || 'Unknown error'));
-                    }
-                } catch (error) {
-                    console.error('Fetch error:', error);
-                    // You would implement a custom modal here, e.g.:
-                    // showCustomModal('Error', 'An error occurred while communicating with the server.');
-                }
-            });
+            <p>
+              FinTrack expenses are shown as cash-flow expenses.
+              They are not automatically treated as income-tax deductions.
+              Actual tax liability can differ where special-rate income,
+              eligible deductions, exemptions or other tax provisions apply.
+            </p>
+
+          </div>
+
+        </div>
+
+      </div>
+    `;
+  }
+
+
+  // -------------------------------------------------------
+  // SHOW RESULTS
+  // -------------------------------------------------------
+
+  if (taxationResults) {
+
+    taxationResults.classList.remove('hidden');
+
+    taxationResults.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start'
+    });
+
+  }
+
+}
+
+
+async function calculateTax(form, calculationType) {
+
+  if (!form) return;
+
+
+  if (taxationError) {
+    taxationError.classList.add('hidden');
+    taxationError.textContent = '';
+  }
+
+  if (dateError) {
+    dateError.classList.add('hidden');
+  }
+
+
+  const formData =
+    new FormData(form);
+
+  const data =
+    Object.fromEntries(
+      formData.entries()
+    );
+
+
+  data.calculation_type =
+    calculationType;
+
+
+  const regimeCheckbox =
+    form.querySelector(
+      '[name="opted_old_regime"]'
+    );
+
+
+  data.opted_old_regime =
+    regimeCheckbox
+      ? regimeCheckbox.checked
+      : false;
+
+
+  try {
+
+    const response =
+      await fetch(
+        '/taxation/calculate/',
+        {
+          method: 'POST',
+
+          headers: {
+            'X-CSRFToken':
+              getCsrfToken(form),
+
+            'Content-Type':
+              'application/json'
+          },
+
+          body: JSON.stringify(data)
         }
+      );
+
+
+    const result =
+      await response.json();
+
+
+    if (!response.ok) {
+
+      if (
+        calculationType === 'period' &&
+        result.error &&
+        result.error.includes('one month')
+      ) {
+
+        if (dateError) {
+
+          dateError.textContent =
+            result.error;
+
+          dateError.classList.remove(
+            'hidden'
+          );
+
+        }
+
+      } else {
+
+        if (taxationError) {
+
+          taxationError.textContent =
+            result.error ||
+            'Unable to calculate tax.';
+
+          taxationError.classList.remove(
+            'hidden'
+          );
+
+        }
+
+      }
+
+      return;
+    }
+
+
+    displayTaxResults(
+      result,
+      calculationType === 'period'
+    );
+
+
+  } catch (error) {
+
+    console.error(
+      'Tax calculation error:',
+      error
+    );
+
+    if (taxationError) {
+
+      taxationError.textContent =
+        'An error occurred while communicating with the server.';
+
+      taxationError.classList.remove(
+        'hidden'
+      );
+
+    }
+
+  }
+
+}
+
+
+if (annualTaxationForm) {
+
+  annualTaxationForm.addEventListener(
+    'submit',
+    function(e) {
+
+      e.preventDefault();
+
+      calculateTax(
+        annualTaxationForm,
+        'annual_estimate'
+      );
+
+    }
+  );
+
+}
+
+
+if (periodTaxationForm) {
+
+  periodTaxationForm.addEventListener(
+    'submit',
+    function(e) {
+
+      e.preventDefault();
+
+      calculateTax(
+        periodTaxationForm,
+        'period'
+      );
+
+    }
+  );
+
+}
+
+
+showAnnualTaxForm();
     });
   </script>
 {% endblock extra_body_js %}

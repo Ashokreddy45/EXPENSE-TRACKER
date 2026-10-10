@@ -1,79 +1,356 @@
-{% extends 'home/navbar.html' %} 
-{% load static %} 
+{% extends 'home/base.html' %}
+{% load static %}
 
-{% block title %}About FinTrack - Your Financial Partner{% endblock %}
+{% block title %}About FinTrack | Personal Finance Management{% endblock %}
 
 {% block extra_head %}
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    body {
-      font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: #131b30;
-      min-height: 100vh;
-      color: #f1f5f9;
-    }
-    .glass-card {
-      background: rgba(255,255,255,0.10);
-      -webkit-backdrop-filter: blur(18px);
-      backdrop-filter: blur(18px);
-      border-radius: 1.2rem;
-      border: 1.3px solid rgba(255,255,255,0.15);
-      box-shadow: 0 8px 32px 0 rgba(16,56,96,0.09), 0 2px 10px 0 rgba(30,64,175,0.03);
-    }
-    .fade-in-section {
-      opacity: 0;  transform: translateY(24px);
-      transition: all 1.1s cubic-bezier(.3,1.13,.16,1.09);
-      will-change: opacity, transform;
-    }
-    .fade-in-section.in-view { opacity: 1; transform: none; }
-  </style>
+<link rel="stylesheet" href="{% static 'home/css/expense_workspace.css' %}">
+<style>
+.ft-about-page {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 38px 24px 64px;
+}
+.ft-about-hero {
+    position: relative;
+    overflow: hidden;
+    padding: clamp(30px, 6vw, 66px) clamp(20px, 5vw, 56px);
+    margin-bottom: 28px;
+    border: 1px solid rgba(148, 163, 184, .25);
+    border-radius: 26px;
+    background: linear-gradient(135deg, rgba(37, 99, 235, .18), rgba(99, 102, 241, .08));
+    text-align: center;
+}
+.ft-about-eyebrow {
+    display: inline-block;
+    padding: 7px 12px;
+    margin-bottom: 18px;
+    border: 1px solid rgba(96, 165, 250, .4);
+    border-radius: 999px;
+    color: #60a5fa;
+    font-size: .78rem;
+    font-weight: 750;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+}
+.ft-about-hero h1 {
+    margin: 0 0 18px;
+    font-size: clamp(2.2rem, 5vw, 3.8rem);
+    line-height: 1.1;
+    font-weight: 850;
+    letter-spacing: -.04em;
+}
+.ft-about-hero h1 span { color: #60a5fa; }
+.ft-about-hero > p {
+    max-width: 760px;
+    margin: 0 auto;
+    font-size: clamp(1rem, 2vw, 1.15rem);
+    line-height: 1.85;
+    opacity: .82;
+}
+.ft-about-section { margin-top: 30px; }
+.ft-about-heading { margin-bottom: 20px; }
+.ft-about-heading h2 {
+    margin: 0 0 9px;
+    font-size: clamp(1.55rem, 3vw, 2rem);
+    font-weight: 800;
+    letter-spacing: -.025em;
+}
+.ft-about-heading p {
+    max-width: 760px;
+    margin: 0;
+    line-height: 1.8;
+    opacity: .76;
+}
+.ft-about-card {
+    min-width: 0;
+    padding: clamp(21px, 3vw, 30px);
+    border: 1px solid rgba(148, 163, 184, .24);
+    border-radius: 20px;
+    background: rgba(127, 127, 127, .055);
+}
+.ft-about-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+}
+.ft-about-feature {
+    display: flex;
+    align-items: flex-start;
+    gap: 15px;
+}
+.ft-about-icon {
+    display: grid;
+    width: 46px;
+    height: 46px;
+    flex: 0 0 46px;
+    place-items: center;
+    border-radius: 14px;
+    background: rgba(59, 130, 246, .13);
+    color: #60a5fa;
+    font-size: 19px;
+}
+.ft-about-feature h3 {
+    margin: 1px 0 8px;
+    font-size: 1.06rem;
+    font-weight: 750;
+}
+.ft-about-feature p {
+    margin: 0;
+    font-size: .96rem;
+    line-height: 1.75;
+    opacity: .76;
+}
+.ft-about-purpose {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 28px;
+    align-items: start;
+}
+.ft-about-purpose p {
+    margin: 0 0 14px;
+    line-height: 1.85;
+    opacity: .8;
+}
+.ft-about-list {
+    display: grid;
+    gap: 13px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+.ft-about-list li {
+    display: flex;
+    gap: 11px;
+    align-items: flex-start;
+    line-height: 1.7;
+}
+.ft-about-list i {
+    margin-top: 5px;
+    color: #60a5fa;
+}
+.ft-about-note {
+    margin-top: 20px;
+    padding: 20px 22px;
+    border-left: 3px solid #60a5fa;
+    border-radius: 0 14px 14px 0;
+    background: rgba(148, 163, 184, .08);
+    line-height: 1.8;
+    opacity: .82;
+}
+.ft-about-cta {
+    margin-top: 30px;
+    padding: clamp(26px, 5vw, 42px);
+    border: 1px solid rgba(148, 163, 184, .25);
+    border-radius: 22px;
+    text-align: center;
+    background: rgba(127, 127, 127, .055);
+}
+.ft-about-cta h2 {
+    margin: 0 0 12px;
+    font-size: clamp(1.5rem, 3vw, 2rem);
+    font-weight: 800;
+}
+.ft-about-cta p {
+    max-width: 650px;
+    margin: 0 auto 22px;
+    line-height: 1.8;
+    opacity: .76;
+}
+.ft-about-button {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    gap: 9px;
+    min-height: 46px;
+    padding: 12px 20px;
+    border-radius: 12px;
+    background: #2563eb;
+    color: white !important;
+    text-decoration: none;
+    font-weight: 750;
+    transition: background .2s ease, transform .2s ease;
+}
+.ft-about-button:hover {
+    background: #1d4ed8;
+    transform: translateY(-1px);
+}
+@media (max-width: 760px) {
+    .ft-about-page { padding: 24px 14px 42px; }
+    .ft-about-grid, .ft-about-purpose { grid-template-columns: 1fr; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .ft-about-button { transition: none; }
+    .ft-about-button:hover { transform: none; }
+}
+</style>
 {% endblock %}
 
 {% block content %}
-<main class="container mx-auto px-3 sm:px-6 lg:px-8 py-28 flex-grow z-10 relative">
-  <section class="mb-16 fade-in-section">
-    <h1 class="text-4xl lg:text-5xl font-extrabold text-white drop-shadow-2xl text-center mb-8 leading-tight">
-      About <span class="text-sky-300">FinTrack</span>
-    </h1>
-    <p class="text-center text-gray-200 text-xl font-medium mb-12 max-w-3xl mx-auto" style="transition-delay:0.13s">
-      Empowering individuals and businesses to achieve financial clarity and growth through intelligent money management.
-    </p>
+<main class="ft-management-page ft-about-page">
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-10 items-center mb-16">
-      <div class="fade-in-section" style="transition-delay:0.2s">
-        <h2 class="text-3xl font-bold text-white border-b-4 border-emerald-400 pb-3 mb-6 drop-shadow">Our Mission</h2>
-        <p class="text-lg text-gray-200 leading-relaxed">
-          At FinTrack, our mission is to simplify personal and small business finance. We believe that everyone deserves the tools and insights to make informed financial decisions, secure their future, and live a life free from financial stress. We are dedicated to providing a platform that is intuitive, insightful, and incredibly powerful.
+    <header class="ft-about-hero">
+        <span class="ft-about-eyebrow">About the project</span>
+        <h1>Meet <span>FinTrack</span></h1>
+        <p>
+            A personal finance management application designed to help users
+            organise their financial records, understand their spending, plan
+            budgets, and keep their financial goals in view.
         </p>
-      </div>
-      <div class="fade-in-section glass-card p-6" style="transition-delay:0.28s">
-        <img src="{% static 'home/images/mission.jpg' %}" alt="Our Mission" class="rounded-xl shadow-lg w-full h-auto object-cover max-h-80" loading="lazy">
-      </div>
-    </div>
+    </header>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-10 items-center mb-16 flex-col-reverse md:flex-row">
-      <div class="fade-in-section glass-card p-6" style="transition-delay:0.36s">
-        <img src="{% static 'home/images/values.jpg' %}" alt="Our Values" class="rounded-xl shadow-lg w-full h-auto object-cover max-h-80" loading="lazy">
-      </div>
-      <div class="fade-in-section" style="transition-delay:0.44s">
-        <h2 class="text-3xl font-bold text-white border-b-4 border-emerald-400 pb-3 mb-6 drop-shadow">Our Values</h2>
-        <ul class="text-lg text-gray-200 space-y-3 list-inside list-disc">
-          <li><strong class="text-sky-300">Clarity:</strong> Making complex financial data easy to understand.</li>
-          <li><strong class="text-sky-300">Security:</strong> Protecting your financial information with the highest standards.</li>
-          <li><strong class="text-sky-300">Innovation:</strong> Continuously improving with cutting-edge features.</li>
-          <li><strong class="text-sky-300">Empowerment:</strong> Giving you control over your financial destiny.</li>
-          <li><strong class="text-sky-300">Support:</strong> Providing reliable and responsive customer assistance.</li>
-        </ul>
-      </div>
-    </div>
+    <section class="ft-about-section">
+        <div class="ft-about-heading">
+            <h2>Why FinTrack?</h2>
+            <p>
+                Managing money becomes difficult when expenses, income, budgets,
+                and savings targets are scattered across different records.
+                FinTrack brings these everyday financial tasks together in one application.
+            </p>
+        </div>
 
-    <section class="glass-card p-8 text-center fade-in-section" style="transition-delay:0.52s">
-      <h2 class="text-3xl font-bold text-white mb-6 drop-shadow">Who We Are</h2>
-      <p class="text-lg text-gray-200 max-w-4xl mx-auto leading-relaxed">
-        FinTrack was founded by a team of finance experts and technology enthusiasts who shared a common vision: to build a personal finance platform that goes beyond basic tracking. We are committed to helping users not just see where their money goes, but to understand financial patterns, set meaningful goals, and work towards true financial freedom. Our diverse team brings together expertise in financial planning, software development, data security, and user experience, all working towards making FinTrack the most trusted name in personal finance management.
-      </p>
+        <div class="ft-about-card">
+            <div class="ft-about-purpose">
+                <div>
+                    <h3 style="margin:0 0 12px;font-size:1.2rem;font-weight:800;">
+                        The problem it addresses
+                    </h3>
+                    <p>
+                        Without an organised record, it can be hard to remember
+                        where money was spent, compare spending with a budget,
+                        or see whether financial habits are changing over time.
+                    </p>
+                    <p>
+                        FinTrack provides a structured place to record and review
+                        financial activity, helping users make sense of the
+                        information they enter.
+                    </p>
+                </div>
+
+                <div>
+                    <h3 style="margin:0 0 14px;font-size:1.2rem;font-weight:800;">
+                        What it aims to make easier
+                    </h3>
+                    <ul class="ft-about-list">
+                        <li><i class="fa-solid fa-check-circle" aria-hidden="true"></i><span>Maintain organised records of income and expenses.</span></li>
+                        <li><i class="fa-solid fa-check-circle" aria-hidden="true"></i><span>Group transactions into relevant categories.</span></li>
+                        <li><i class="fa-solid fa-check-circle" aria-hidden="true"></i><span>Set budget limits and savings goals.</span></li>
+                        <li><i class="fa-solid fa-check-circle" aria-hidden="true"></i><span>Review available summaries and financial activity.</span></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
     </section>
-  </section>
+
+    <section class="ft-about-section">
+        <div class="ft-about-heading">
+            <h2>What you can do with FinTrack</h2>
+            <p>
+                The application brings together practical tools for everyday
+                personal finance management.
+            </p>
+        </div>
+
+        <div class="ft-about-grid">
+            <article class="ft-about-card">
+                <div class="ft-about-feature">
+                    <div class="ft-about-icon"><i class="fa-solid fa-wallet" aria-hidden="true"></i></div>
+                    <div>
+                        <h3>Track expenses and income</h3>
+                        <p>Record money going out and coming in, with dates, amounts, descriptions, and categories where applicable.</p>
+                    </div>
+                </div>
+            </article>
+
+            <article class="ft-about-card">
+                <div class="ft-about-feature">
+                    <div class="ft-about-icon"><i class="fa-solid fa-chart-pie" aria-hidden="true"></i></div>
+                    <div>
+                        <h3>Plan budgets</h3>
+                        <p>Create budget limits and use your recorded transactions to better understand spending against your plans.</p>
+                    </div>
+                </div>
+            </article>
+
+            <article class="ft-about-card">
+                <div class="ft-about-feature">
+                    <div class="ft-about-icon"><i class="fa-solid fa-bullseye" aria-hidden="true"></i></div>
+                    <div>
+                        <h3>Set financial goals</h3>
+                        <p>Define savings targets and deadlines to give your financial plans a clear objective.</p>
+                    </div>
+                </div>
+            </article>
+
+            <article class="ft-about-card">
+                <div class="ft-about-feature">
+                    <div class="ft-about-icon"><i class="fa-solid fa-chart-line" aria-hidden="true"></i></div>
+                    <div>
+                        <h3>Review financial activity</h3>
+                        <p>Use the available transaction views and summaries to identify patterns and make more informed everyday decisions.</p>
+                    </div>
+                </div>
+            </article>
+
+            <article class="ft-about-card">
+                <div class="ft-about-feature">
+                    <div class="ft-about-icon"><i class="fa-solid fa-calculator" aria-hidden="true"></i></div>
+                    <div>
+                        <h3>Estimate income tax</h3>
+                        <p>Use the application's tax estimation feature to explore an estimate based on the details entered. Results should be independently verified.</p>
+                    </div>
+                </div>
+            </article>
+
+            <article class="ft-about-card">
+                <div class="ft-about-feature">
+                    <div class="ft-about-icon"><i class="fa-solid fa-sliders" aria-hidden="true"></i></div>
+                    <div>
+                        <h3>Keep records organised</h3>
+                        <p>Use the application's available management features to maintain and update your personal finance records.</p>
+                    </div>
+                </div>
+            </article>
+        </div>
+    </section>
+
+    <section class="ft-about-section">
+        <div class="ft-about-heading">
+            <h2>Who can benefit?</h2>
+            <p>
+                FinTrack is intended for people who want a clearer and more
+                consistent way to manage everyday financial information.
+            </p>
+        </div>
+
+        <div class="ft-about-card">
+            <ul class="ft-about-list">
+                <li><i class="fa-solid fa-user" aria-hidden="true"></i><span><strong>Students:</strong> keep track of everyday spending and plan a limited budget.</span></li>
+                <li><i class="fa-solid fa-briefcase" aria-hidden="true"></i><span><strong>Working professionals:</strong> organise income, recurring expenses, and savings targets.</span></li>
+                <li><i class="fa-solid fa-house" aria-hidden="true"></i><span><strong>Households:</strong> maintain a clearer record of spending and planned budgets.</span></li>
+                <li><i class="fa-solid fa-chart-simple" aria-hidden="true"></i><span><strong>Anyone building better habits:</strong> review financial activity and make more deliberate spending decisions.</span></li>
+            </ul>
+        </div>
+    </section>
+
+    <aside class="ft-about-note">
+        <strong>A note about financial decisions:</strong>
+        FinTrack helps organise the information users provide. It does not
+        guarantee savings or financial outcomes. Tax estimates are informational
+        and should be checked against current official guidance or a qualified
+        tax professional.
+    </aside>
+
+    <section class="ft-about-cta">
+        <h2>Start organising your finances</h2>
+        <p>
+            Record your transactions, create a budget, or set a goal.
+            Small, consistent steps can make your financial activity easier to understand.
+        </p>
+        <a href="{% url 'home' %}" class="ft-about-button">
+            Go to Dashboard <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+        </a>
+    </section>
+
 </main>
 {% endblock %}

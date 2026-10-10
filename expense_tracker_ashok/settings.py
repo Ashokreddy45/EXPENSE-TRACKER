@@ -24,9 +24,9 @@ load_dotenv(BASE_DIR / ".env")
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv("DEBUG", "True").strip().lower() in ("1", "true", "yes", "on")
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [host.strip() for host in os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",") if host.strip()]
 
 
 # Application definition
@@ -56,6 +56,7 @@ LOGOUT_REDIRECT_URL = 'login'
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -196,6 +197,8 @@ CONTENT_SECURITY_POLICY = {
         "default-src": ("'self'",),
         "script-src": (
             "'self'",
+            "'unsafe-inline'",
+            "https://cdn.tailwindcss.com",
             "https://cdn.jsdelivr.net",
             "https://cdnjs.cloudflare.com",
         ),
@@ -215,7 +218,11 @@ CONTENT_SECURITY_POLICY = {
             "'self'",
             "data:",
         ),
-        "connect-src": ("'self'",),
+        "connect-src": (
+            "'self'",
+            "https://cdn.jsdelivr.net",
+            "https://cdnjs.cloudflare.com",
+        ),
         "object-src": ("'none'",),
         "base-uri": ("'self'",),
     },
@@ -223,3 +230,22 @@ CONTENT_SECURITY_POLICY = {
 }
 
 # --- WebAuthn specific settings (REQUIRED) ---
+
+# --- Environment-driven production security ---
+if not DEBUG:
+    SECURE_HSTS_SECONDS = int(os.getenv("SECURE_HSTS_SECONDS", "0"))
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = os.getenv("SECURE_HSTS_INCLUDE_SUBDOMAINS", "False").strip().lower() in ("1", "true", "yes", "on")
+    SECURE_SSL_REDIRECT = os.getenv("SECURE_SSL_REDIRECT", "True").lower() in ("1", "true", "yes", "on")
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    SECURE_REFERRER_POLICY = "same-origin"
+    X_FRAME_OPTIONS = "DENY"
+
+    CSRF_TRUSTED_ORIGINS = [
+        origin.strip()
+        for origin in os.getenv("CSRF_TRUSTED_ORIGINS", "").split(",")
+        if origin.strip()
+    ]
+
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")

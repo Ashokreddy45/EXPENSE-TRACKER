@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import Q
 from django.conf import settings
 from django.db.models.signals import post_save
 from django.dispatch import receiver
@@ -41,10 +42,19 @@ class Transaction(models.Model):
 
     class Meta:
         ordering = ['-date', '-created_at']
+        indexes = [
+            models.Index(fields=['user', '-date']),
+        ]
+        constraints = [
+            models.CheckConstraint(
+                condition=Q(amount__gt=0),
+                name='transaction_amount_positive',
+            ),
+        ]
 
     def __str__(self):
         return f"{self.description} - {self.amount}"
-    
+
 
 
 class RegisteredCredential(models.Model):
@@ -55,8 +65,8 @@ class RegisteredCredential(models.Model):
 
     def __str__(self):
         return f"Credential for {self.user.username}"
-    
-    
+
+
 # Modified Income Model
 class Income(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='incomes')
@@ -110,16 +120,92 @@ class Goal(models.Model):
 class Profile(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     reset_code = models.CharField(max_length=6, blank=True, null=True)
+    reset_code_created_at = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
         return self.user.username
 
 # Signal for Profile creation
+# ---------------------------------------------------------
+# DEFAULT USER CATEGORIES
+# ---------------------------------------------------------
+
+DEFAULT_CATEGORIES = {
+    'expense': [
+        'Food',
+        'Groceries',
+        'Dining Out',
+        'Transport',
+        'Fuel',
+        'Rent',
+        'Bills',
+        'Utilities',
+        'Shopping',
+        'Entertainment',
+        'Health',
+        'Education',
+        'Clothing',
+        'Insurance',
+        'Subscriptions',
+        'Travel',
+        'Gifts',
+        'Personal Care',
+        'Electronics',
+        'Other Expense',
+    ],
+    'income': [
+        'Salary',
+        'Bonus',
+        'Business',
+        'Freelance',
+        'Rental Income',
+        'Interest',
+        'Investment Returns',
+        'Gift',
+        'Other Income',
+    ],
+    'budget': [
+        'Essentials',
+        'Lifestyle',
+        'Debt',
+        'Debt Repayment',
+        'Education',
+        'Savings',
+        'Investments',
+        'Travel',
+        'Other Budget',
+    ],
+    'goal': [
+        'Emergency Fund',
+        'New Laptop',
+        'New Phone',
+        'Vacation',
+        'Car',
+        'Education',
+        'Home',
+        'Retirement',
+        'General Savings',
+        'Other Goal',
+    ],
+}
+
+
+def create_default_categories_for_user(user):
+    for category_type, category_names in DEFAULT_CATEGORIES.items():
+        for category_name in category_names:
+            Category.objects.get_or_create(
+                user=user,
+                name=category_name,
+                type=category_type,
+            )
+
+
+# Signal for Profile creation and default category provisioning
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)
 def create_or_update_user_profile(sender, instance, created, **kwargs):
     if created:
         Profile.objects.create(user=instance)
+        create_default_categories_for_user(instance)
     else:
-        # Only attempt to save the profile if it already exists to prevent creation on every user save
         if hasattr(instance, 'profile'):
             instance.profile.save()

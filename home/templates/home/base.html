@@ -10,8 +10,10 @@
   {# Favicon Link #}
   <link rel="icon" type="image/x-icon" href="{% static 'home/images/favicon.ico' %}">
 
-  {# Tailwind compiled CSS (build and place at static/css/tailwind.css) #}
-  <link rel="stylesheet" href="{% static 'css/tailwind.css' %}">
+
+<link rel="stylesheet" href="{% static 'home/css/modern.css' %}?v=20261005">
+  {# Tailwind CSS - required by the dashboard and navbar utility classes #}
+  <script src="https://cdn.tailwindcss.com"></script>
 
   {# Google fonts & other CSS dependencies #}
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -36,8 +38,63 @@
   </style>
 
   {% block extra_head %}{% endblock %}
+  {% if request.path == '/login/' %}
+  <style>
+    html:has(body.login-page),
+    body.login-page {
+      height: 100%;
+      min-height: 0;
+      margin: 0;
+      overflow: hidden;
+    }
+
+    body.login-page {
+      height: 100vh;
+      height: 100dvh;
+    }
+
+    body.login-page main.site-main {
+      box-sizing: border-box;
+      width: 100%;
+      max-width: none;
+      height: 100%;
+      min-height: 0;
+      flex: 1 1 auto;
+      padding: 1rem;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    body.login-page footer {
+      display: none;
+    }
+
+    body.login-page .liquid-bg {
+      position: fixed;
+      inset: 0;
+      height: 100%;
+    }
+
+    @media (max-height: 650px) {
+      body.login-page main.site-main {
+        padding: 0.5rem;
+      }
+
+      body.login-page .glass-card {
+        padding: 1.25rem;
+      }
+
+      body.login-page .glass-card .text-center.mb-8 {
+        margin-bottom: 1rem;
+      }
+    }
+  </style>
+  {% endif %}
 </head>
-<body class="min-h-screen flex flex-col relative overflow-x-hidden bg-[#131b30]">
+<body class="min-h-screen flex flex-col relative overflow-x-hidden bg-[#131b30]{% if request.path == '/login/' %} login-page{% endif %}">
 
   {# Blob background - same as before #}
   <div aria-hidden="true" class="fixed inset-0 z-0 blob-bg pointer-events-none select-none">
@@ -51,7 +108,7 @@
     {% include 'navbar.html' %}
 {% endif %}
 
-  <main class="container mx-auto px-3 sm:px-6 lg:px-8 py-28 flex-grow z-10 relative">
+  <main class="site-main container mx-auto px-3 sm:px-6 lg:px-8 py-28 flex-grow z-10 relative">
     {% block content %}{% endblock %}
   </main>
 
@@ -70,8 +127,39 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.3.0/flowbite.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-  {# Your page JS moved to static js file (no inline scripts) #}
-  <script src="{% static 'js/home.js' %}"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const userMenuButton = document.getElementById('user-menu-button');
+      const userDropdown = document.getElementById('user-dropdown');
+      const mobileMenuButton = document.getElementById('mobile-menu-button');
+      const mobileMenu = document.getElementById('mobile-menu');
+
+      if (userMenuButton && userDropdown) {
+        userMenuButton.addEventListener('click', function (event) {
+          event.stopPropagation();
+          const open = userDropdown.classList.contains('hidden');
+          userDropdown.classList.toggle('hidden');
+          userMenuButton.setAttribute('aria-expanded', String(open));
+        });
+
+        document.addEventListener('click', function (event) {
+          if (!userDropdown.contains(event.target) &&
+              !userMenuButton.contains(event.target)) {
+            userDropdown.classList.add('hidden');
+            userMenuButton.setAttribute('aria-expanded', 'false');
+          }
+        });
+      }
+
+      if (mobileMenuButton && mobileMenu) {
+        mobileMenuButton.addEventListener('click', function () {
+          const open = mobileMenu.classList.contains('hidden');
+          mobileMenu.classList.toggle('hidden');
+          mobileMenuButton.setAttribute('aria-expanded', String(open));
+        });
+      }
+    });
+  </script>
 
   {% block extra_body_js %}{% endblock %}
 

@@ -1,70 +1,89 @@
-{% extends 'home/navbar.html' %} {# Make sure this path is correct based on our previous fix #}
+{% extends 'home/base.html' %}
 {% load static %}
-{% load widget_tweaks %} {# To easily add Tailwind CSS classes to form fields #}
 
-{% block title %}Edit Profile{% endblock %}
+{% block title %}Edit Profile | FinTrack{% endblock %}
 
 {% block extra_head %}
+<link rel="stylesheet" href="{% static 'home/css/expense_workspace.css' %}">
+<style>
+.ft-profile-page { max-width: 900px; margin: 0 auto; padding: 36px 24px 56px; }
+.ft-profile-card { max-width: 720px; margin: 0 auto; }
+.ft-profile-avatar { width: 64px; height: 64px; display: grid; place-items: center; border-radius: 20px; background: rgba(59,130,246,.12); color: #60a5fa; font-size: 28px; flex-shrink: 0; }
+.ft-profile-form-fields { display: grid; gap: 22px; }
+.ft-profile-field label { display: block; margin-bottom: 8px; font-weight: 600; }
+.ft-profile-field input { display: block; width: 100%; box-sizing: border-box; min-height: 48px; padding: 12px 14px; border: 1px solid var(--ft-border, #d1d5db); border-radius: 12px; background: var(--ft-input-bg, transparent); color: inherit; }
+.ft-profile-field input:focus { outline: 2px solid #3b82f6; outline-offset: 2px; }
+.ft-profile-error { margin-top: 6px; color: #ef4444; font-size: .875rem; }
+.ft-profile-actions { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-top: 28px; }
+.ft-profile-secondary { display: inline-flex; justify-content: center; align-items: center; min-height: 44px; padding: 10px 18px; border: 1px solid var(--ft-border, #d1d5db); border-radius: 12px; text-decoration: none; color: inherit; }
+.ft-profile-messages { display: grid; gap: 10px; margin-bottom: 20px; }
+.ft-profile-message { padding: 12px 15px; border-radius: 12px; }
+.ft-profile-message.success { background: rgba(22,163,74,.12); color: #16a34a; }
+.ft-profile-message.error { background: rgba(220,38,38,.12); color: #dc2626; }
+.ft-profile-message.info, .ft-profile-message.warning { background: rgba(59,130,246,.12); color: #3b82f6; }
+@media (max-width: 600px) { .ft-profile-page { padding: 24px 14px 40px; } .ft-profile-actions > * { width: 100%; } }
+</style>
 {% endblock %}
 
 {% block content %}
-<main class="container mx-auto px-4 py-12 flex-grow">
-    <div class="max-w-3xl mx-auto bg-white p-8 rounded-xl shadow-lg border border-gray-200">
-        <h1 class="text-4xl font-extrabold text-gray-900 text-center mb-10 border-b-4 border-sky-500 pb-4">
-            Edit Your Profile
-        </h1>
+<main class="ft-management-page ft-profile-page">
+    <header class="ft-management-header">
+        <div>
+            <h1>Edit Profile</h1>
+            <p>Manage your FinTrack account details.</p>
+        </div>
+    </header>
+
+    <section class="ft-workspace-card ft-form-card ft-profile-card">
+        <div class="ft-card-header">
+            <div class="ft-profile-avatar" aria-hidden="true">
+                <i class="fa-solid fa-user-pen"></i>
+            </div>
+            <div>
+                <h2>Personal information</h2>
+                <p>Keep your username and email address up to date.</p>
+            </div>
+        </div>
 
         {% if messages %}
-            <div class="mb-6">
-                {% for message in messages %}
-                    <div class="p-4 rounded-lg {% if message.tags == 'success' %}bg-green-100 text-green-800{% elif message.tags == 'error' %}bg-red-100 text-red-800{% else %}bg-blue-100 text-blue-800{% endif %}">
-                        {{ message }}
-                    </div>
-                {% endfor %}
-            </div>
+        <div class="ft-profile-messages" role="status" aria-live="polite">
+            {% for message in messages %}
+            <div class="ft-profile-message {{ message.tags|default:'info' }}">{{ message }}</div>
+            {% endfor %}
+        </div>
         {% endif %}
 
-        <form method="post" class="space-y-6">
+        <form method="post" novalidate>
             {% csrf_token %}
-
-            <div class="mb-4">
-                <label for="{{ user_form.username.id_for_label }}" class="block text-gray-700 text-sm font-bold mb-2">Username:</label>
-                {% render_field user_form.username class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" %}
-                {% if user_form.username.errors %}
-                    <p class="text-red-500 text-xs italic">{{ user_form.username.errors }}</p>
-                {% endif %}
+            <div class="ft-profile-form-fields">
+                {% for field in user_form %}
+                <div class="ft-profile-field">
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.help_text %}
+                    <div class="text-sm opacity-70 mt-1">{{ field.help_text|safe }}</div>
+                    {% endif %}
+                    {% for error in field.errors %}
+                    <p class="ft-profile-error">{{ error }}</p>
+                    {% endfor %}
+                </div>
+                {% endfor %}
             </div>
 
-            <div class="mb-4">
-                <label for="{{ user_form.email.id_for_label }}" class="block text-gray-700 text-sm font-bold mb-2">Email:</label>
-                {% render_field user_form.email class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" %}
-                {% if user_form.email.errors %}
-                    <p class="text-red-500 text-xs italic">{{ user_form.email.errors }}</p>
-                {% endif %}
+            {% if user_form.non_field_errors %}
+            <div class="ft-profile-error" role="alert">
+                {{ user_form.non_field_errors }}
             </div>
+            {% endif %}
 
-            {# Uncomment and adjust if you are using a separate ProfileEditForm #}
-            {# {% if profile_form %} #}
-            {#     {% for field in profile_form %} #}
-            {#         <div class="mb-4"> #}
-            {#             <label for="{{ field.id_for_label }}" class="block text-gray-700 text-sm font-bold mb-2">{{ field.label }}:</label> #}
-            {#             {% render_field field class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" %} #}
-            {#             {% if field.errors %} #}
-            {#                 <p class="text-red-500 text-xs italic">{{ field.errors }}</p> #}
-            {#             {% endif %} #}
-            {#         </div> #}
-            {#     {% endfor %} #}
-            {# {% endif %} #}
-
-            <div class="text-center mt-6">
-                <button type="submit" class="bg-sky-600 hover:bg-sky-700 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105">
-                    Save Changes
+            <div class="ft-profile-actions">
+                <button type="submit" class="ft-primary-submit">
+                    <i class="fa-solid fa-floppy-disk"></i>
+                    <span>Save Changes</span>
                 </button>
-                <a href="{% url 'view_profile' %}" class="ml-4 text-gray-600 hover:text-gray-900 font-semibold py-3 px-6 rounded-lg transition duration-300 ease-in-out">
-                    Cancel
-                </a>
+                <a href="{% url 'view_profile' %}" class="ft-profile-secondary">Cancel</a>
             </div>
         </form>
-    </div>
+    </section>
 </main>
 {% endblock %}

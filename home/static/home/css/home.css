@@ -1,0 +1,245 @@
+/* General body styling */
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f4f4f9;
+  margin: 0;
+  padding: 0;
+}
+
+/* Header styling */
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #007bff;
+  padding: 10px 20px;
+  color: white;
+}
+
+.logo img {
+  width: 100px;
+}
+
+.navbar ul {
+  list-style-type: none;
+  display: flex;
+  margin: 0;
+  padding: 0;
+}
+
+.navbar ul li {
+  margin-left: 20px;
+}
+
+.navbar ul li a {
+  color: white;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.profile {
+  display: flex;
+  align-items: center;
+}
+
+.profile span {
+  margin-right: 15px;
+  font-weight: bold;
+}
+
+/* Container */
+.container {
+  width: 100%;
+  max-width: 600px;
+  margin: 50px auto;
+  text-align: center;
+}
+
+/* Dashboard Summary */
+.dashboard-summary {
+  padding: 20px;
+  background-color: #fff;
+  margin: 20px auto;
+  max-width: 1200px;
+}
+
+.summary-cards {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+
+.card {
+  background-color: #f9f9f9;
+  width: 30%;
+  padding: 15px;
+  margin: 10px;
+  border-radius: 8px;
+  text-align: center;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+h3 {
+  color: #333;
+  font-size: 18px;
+}
+
+/* Graphs Section */
+.graphs {
+  padding: 20px;
+  background-color: #fff;
+  margin: 40px auto;
+  max-width: 1200px;
+}
+
+.graphs h2 {
+  font-size: 24px;
+  color: #333;
+  margin-bottom: 20px;
+}
+
+/* Graph Wrapper: column layout to center chart below data */
+.graph-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 30px;
+}
+
+/* Aggregation data box styling */
+.aggregation-data {
+  width: 100%;
+  max-width: 500px;
+  background-color: #f9f9f9;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s ease;
+}
+
+.aggregation-data:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.08);
+}
+
+.aggregation-data h4 {
+  margin-top: 0;
+  font-size: 18px;
+  color: #333;
+}
+
+.aggregation-data p {
+  font-size: 16px;
+  margin: 6px 0;
+}
+
+/* Chart Container: big and centered */
+.chart-container {
+  width: 90%;
+  max-width: 900px;
+  background-color: #fff;
+  border-radius: 10px;
+  padding: 25px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s ease;
+}
+
+.chart-container:hover {
+  transform: translateY(-3px);
+}
+
+.chart-container canvas {
+  width: 100% !important;
+  height: auto !important;
+  max-height: 500px;
+}
+
+/* Filters Styling */
+.filters {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.filters select {
+  padding: 8px 12px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background-color: #f9f9f9;
+  transition: border 0.2s ease;
+}
+
+.filters select:focus {
+  border-color: #007bff;
+  outline: none;
+}
+
+/* Recent Transactions */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 20px 0;
+}
+
+table th,
+table td {
+  border: 1px solid #ddd;
+  padding: 8px;
+}
+
+table th {
+  background-color: #007bff;
+  color: white;
+  text-align: left;
+}
+
+/* Quick Actions */
+.quick-actions {
+  margin: 20px auto;
+  text-align: center;
+}
+
+button {
+  padding: 10px 15px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  margin: 5px;
+}
+
+button a {
+  color: white;
+  text-decoration: none;
+}
+
+button:hover {
+  background-color: #0056b3;
+}
+
+/* Footer */
+footer {
+  background-color: #333;
+  color: white;
+  text-align: center;
+  padding: 15px;
+}
+
+footer a {
+  color: #007bff;
+  text-decoration: none;
+}
+
+/* Responsive Chart Wrapper */
+@media (max-width: 768px) {
+  .graph-wrapper {
+    flex-direction: column;
+  }
+  .chart-container,
+  .aggregation-data {
+    width: 100%;
+  }
+}
