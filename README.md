@@ -1,54 +1,55 @@
-# FinTrack — Personal Finance & Expense Tracker
+<div align="center">
 
-<p align="center">
-  <strong>Track smarter. Budget better. Build financial clarity.</strong>
-</p>
+# FinTrack
+### Personal Finance & Expense Tracker
 
-<p align="center">
-  A Django-powered personal finance application for managing expenses, income, budgets, savings goals, and financial insights in one place.
-</p>
+**Track smarter. Budget better. Build financial clarity.**
 
-<p align="center">
-  <img src="https://img.shields.io/badge/Python-3.12%2B-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python">
-  <img src="https://img.shields.io/badge/Django-5.1-092E20?style=for-the-badge&logo=django&logoColor=white" alt="Django">
-  <img src="https://img.shields.io/badge/Database-MySQL-4479A1?style=for-the-badge&logo=mysql&logoColor=white" alt="MySQL">
-  <img src="https://img.shields.io/badge/Status-In%20Development-orange?style=for-the-badge" alt="In development">
-</p>
+A Django-powered web application to manage expenses, income, budgets, savings goals, and financial insights in one place.
+
+![Python](https://img.shields.io/badge/Python-3.12%2B-3776AB?style=for-the-badge&logo=python&logoColor=white)
+![Django](https://img.shields.io/badge/Django-5.1-092E20?style=for-the-badge&logo=django&logoColor=white)
+![Frontend](https://img.shields.io/badge/Frontend-HTML%20%7C%20CSS%20%7C%20JavaScript-E34F26?style=for-the-badge)
+![Status](https://img.shields.io/badge/Status-Active%20Development-orange?style=for-the-badge)
+
+</div>
 
 ---
 
 ## Overview
 
-**FinTrack** is a web-based personal finance management application built with Django. It helps users record financial transactions, organize spending, manage budgets, monitor savings goals, and understand their financial activity through a centralized dashboard.
+**FinTrack** is a personal finance management application built with Python and Django. It brings everyday financial activities into one place, helping users organize transactions, monitor budgets, track savings goals, and understand spending patterns.
 
-The project focuses on practical financial management, a user-friendly interface, and maintainable backend architecture.
+This project is developed as a practical application of web development, database management, application security, and software testing.
 
 ## Features
 
-- **Dashboard:** View an overview of your financial activity.
-- **Expense management:** Record, edit, categorize, and delete expenses.
-- **Income management:** Track income and review financial records.
-- **Budget planning:** Create and manage budgets.
-- **Savings goals:** Set financial goals and monitor progress.
-- **Transaction history:** Review and manage recorded transactions.
-- **Financial analytics:** Explore spending patterns and summaries.
-- **Tax estimation:** Estimate tax using supported tax-calculation rules.
-- **User accounts:** Register, sign in, and manage your profile.
-- **Responsive interface:** Access the application through a modern web interface.
-- **Security-conscious configuration:** Load secrets and deployment settings through environment variables.
+- **Financial dashboard** — review key financial information in one place.
+- **Expense management** — record, categorize, edit, and delete expenses.
+- **Income tracking** — maintain income records.
+- **Budget management** — create and review budgets.
+- **Savings goals** — set financial goals and monitor progress.
+- **Transaction history** — review recorded financial activity.
+- **Financial analytics** — explore summaries and spending patterns.
+- **Tax estimation** — estimate tax using the application's supported calculation rules.
+- **User accounts and profiles** — manage individual accounts and profile details.
+- **Responsive interface** — use the application through a modern web interface.
+- **Security-conscious configuration** — use environment variables for deployment settings and secrets.
 
-> Features and availability may vary as development continues.
+> Features and availability may evolve as development continues.
 
 ## Technology Stack
 
-| Layer | Technologies |
+| Area | Technology |
 |---|---|
-| Backend | Python, Django |
-| Database | MySQL |
-| Frontend | HTML, CSS, JavaScript, Tailwind CSS |
-| Static files | WhiteNoise |
-| Database driver | mysqlclient |
-| Application server | Gunicorn |
+| Language | Python |
+| Web framework | Django |
+| Frontend | HTML, CSS, JavaScript |
+| UI styling | Tailwind CSS and project stylesheets |
+| Local database | MySQL |
+| Optional deployment database | SQLite |
+| Static-file serving | WhiteNoise |
+| WSGI server | Gunicorn |
 | Testing | Django test framework |
 | Version control | Git and GitHub |
 | Deployment target | Render |
@@ -57,32 +58,31 @@ The project focuses on practical financial management, a user-friendly interface
 
 ```text
 EXPENSE-TRACKER/
-├── expense_tracker_ashok/   # Django project configuration
+├── expense_tracker_ashok/   # Django project settings and URLs
 ├── home/
-│   ├── migrations/          # Database schema migrations
-│   ├── static/home/css/     # Application stylesheets
+│   ├── migrations/          # Database migrations
+│   ├── static/home/         # Application static assets
 │   ├── templates/home/      # HTML templates
-│   ├── forms.py             # Django forms
+│   ├── forms.py             # Form definitions
 │   ├── models.py            # Data models
 │   ├── tests.py             # Automated tests
 │   ├── urls.py              # Application routes
-│   └── views.py             # Application views
-├── static/                  # Project-level static assets
-├── manage.py                # Django management utility
-├── requirements.txt         # Python dependencies
-├── .env.example             # Environment variable template
+│   └── views.py             # Request handling and business logic
+├── manage.py
+├── requirements.txt
+├── build.sh
+├── .env.example
 ├── .gitignore
 └── README.md
 ```
 
-## Getting Started
+## Run Locally
 
 ### Prerequisites
 
-- Python 3.12
-- MySQL Server
+- Python 3.12 or a compatible version
+- MySQL Server for the existing local MySQL setup
 - Git
-- A terminal and code editor
 
 ### 1. Clone the repository
 
@@ -91,7 +91,7 @@ git clone https://github.com/Ashokreddy45/EXPENSE-TRACKER.git
 cd EXPENSE-TRACKER
 ```
 
-### 2. Create a virtual environment
+### 2. Create and activate a virtual environment
 
 **macOS / Linux**
 
@@ -100,11 +100,11 @@ python3 -m venv env
 source env/bin/activate
 ```
 
-**Windows**
+**Windows PowerShell**
 
 ```powershell
 py -m venv env
-env\Scripts\activate
+env\Scripts\Activate.ps1
 ```
 
 ### 3. Install dependencies
@@ -114,62 +114,52 @@ python -m pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-### 4. Configure the environment
+### 4. Configure environment variables
 
-Create a local `.env` file based on `.env.example`:
+Create a local environment file:
 
 ```bash
 cp .env.example .env
 ```
 
-Edit `.env` and provide your local configuration. For example:
+Edit `.env` with your own settings. For a local MySQL setup, the relevant values will look similar to:
 
 ```dotenv
-SECRET_KEY=replace-with-a-secure-random-secret
+SECRET_KEY=replace-with-a-strong-secret
 DEBUG=True
 ALLOWED_HOSTS=localhost,127.0.0.1
 
+DB_ENGINE=mysql
 DB_NAME=expense_tracker
 DB_USER=your_mysql_user
 DB_PASSWORD=your_mysql_password
 DB_HOST=localhost
 DB_PORT=3306
-
-EMAIL_HOST_USER=
-EMAIL_HOST_PASSWORD=
-DEFAULT_FROM_EMAIL=
-
-WEBAUTHN_ORIGIN=http://localhost:8000
-WEBAUTHN_RP_ID=localhost
-WEBAUTHN_RP_NAME=FinTrack
-
-SECURE_SSL_REDIRECT=False
-SECURE_HSTS_SECONDS=0
-SECURE_HSTS_INCLUDE_SUBDOMAINS=False
-CSRF_TRUSTED_ORIGINS=
 ```
 
-Use values appropriate to your local setup. Never commit `.env`, production secrets, database passwords, or database dumps to GitHub.
+Keep any existing email and WebAuthn settings from `.env.example` and configure them if you use those features.
+
+**Never commit `.env`, passwords, secret keys, database dumps, or private user data to GitHub.**
 
 ### 5. Prepare the database
 
-Create a MySQL database named `expense_tracker` if you are setting up a fresh local installation. Configure the database credentials in `.env`.
-
-Then apply the Django migrations:
+For a fresh local installation, create the MySQL database configured in `.env`. Then run:
 
 ```bash
 python manage.py migrate
 ```
 
-### 6. Create an administrator account
+If you already have a working local database, do not create or replace it unnecessarily. Back up your data before making schema changes.
+
+### 6. Create an administrator
 
 ```bash
 python manage.py createsuperuser
 ```
 
-Follow the prompts to create your account.
+Follow the prompts to create an administrator account.
 
-### 7. Run the development server
+### 7. Start the development server
 
 ```bash
 python manage.py runserver
@@ -177,73 +167,85 @@ python manage.py runserver
 
 Open [http://127.0.0.1:8000/](http://127.0.0.1:8000/) in your browser.
 
-## Running Tests
+## Testing and Quality Checks
 
-Run the project's automated tests with:
+Run the automated tests:
 
 ```bash
 python manage.py test
 ```
 
-Run Django's configuration checks with:
+Check the Django configuration:
 
 ```bash
 python manage.py check
 ```
 
+Both commands should complete successfully before deployment.
+
 ## Deployment
 
-FinTrack is being prepared for deployment using **Render** for the Django web service and a separate production database provider.
+The planned student-project deployment uses **Render's free web service with SQLite** to avoid requiring a separate managed MySQL database.
 
-The deployment process includes:
+The deployment configuration must explicitly select SQLite through the `DB_ENGINE` environment variable. The existing local configuration continues to use MySQL when `DB_ENGINE=mysql`.
 
-1. Configuring production environment variables.
-2. Provisioning a compatible managed MySQL database.
-3. Migrating the existing database data safely, if required.
-4. Installing Python dependencies.
-5. Collecting static files.
-6. Applying migrations in the production environment.
-7. Configuring HTTPS, allowed hosts, and CSRF trusted origins.
-8. Verifying login, transactions, budgets, and other core workflows.
+### Deployment checklist
 
-**Important:** Render's web-service filesystem is ephemeral by default. Uploaded media requires persistent storage or an external storage service. Keep local database backups until the production migration has been verified.
+- [ ] Configure the Render service and select the Free instance.
+- [ ] Set production environment variables, including a strong `SECRET_KEY`.
+- [ ] Set `DEBUG=False` and configure `ALLOWED_HOSTS`.
+- [ ] Configure the production domain in `CSRF_TRUSTED_ORIGINS` if required.
+- [ ] Configure SQLite for the deployed service.
+- [ ] Install dependencies and collect static files.
+- [ ] Apply Django migrations.
+- [ ] Verify registration, login, expenses, income, budgets, goals, and analytics.
+- [ ] Confirm the limitations of the deployment's storage.
 
-Deployment is a work in progress; no production URL is published here yet.
+### Important: SQLite and Render storage
 
-## Security Notes
+Render's free web-service filesystem is ephemeral. A SQLite database stored on that filesystem **can be lost when the service restarts, redeploys, or its instance is replaced**. It is therefore suitable for a student demonstration, testing, or temporary data—not as the only copy of important financial records.
 
-- Keep `.env` out of version control.
+Keep your local MySQL database and backups intact. Do not migrate or delete your existing data just to deploy a demonstration version. Persistent storage and backup arrangements would need to be considered if deployed data must survive restarts.
+
+No production URL is listed until the deployment has been completed and verified.
+
+## Security
+
+- Keep secrets and credentials out of source control.
 - Use a unique, strong `SECRET_KEY` in production.
 - Set `DEBUG=False` in production.
-- Configure `ALLOWED_HOSTS` and `CSRF_TRUSTED_ORIGINS` for the actual deployment domain.
-- Use a database account with appropriate privileges rather than a root account.
-- Back up data before database migrations or imports.
-- Never publish credentials, private user data, or database dumps.
+- Restrict `ALLOWED_HOSTS` to the intended hostnames.
+- Configure CSRF trusted origins correctly for HTTPS deployment.
+- Use appropriate database permissions.
+- Keep independent backups of important data.
+- Do not store sensitive financial information in a temporary deployment database.
 
 ## Roadmap
 
-- [ ] Complete production deployment.
-- [ ] Configure and verify the production database.
-- [ ] Verify all core workflows in production.
-- [ ] Configure persistent media storage if needed.
-- [ ] Add application screenshots.
-- [ ] Expand documentation and test coverage.
+- [ ] Deploy the application for demonstration.
+- [ ] Verify core workflows on the hosted version.
+- [ ] Add screenshots of the application.
+- [ ] Improve documentation and automated test coverage.
+- [ ] Evaluate persistent storage if the application needs durable hosted data.
 
 ## Contributing
 
-Suggestions and bug reports are welcome. For code contributions:
+Suggestions and bug reports are welcome.
 
 1. Fork the repository.
 2. Create a feature branch.
-3. Make and test your changes.
-4. Submit a pull request describing the changes.
+3. Make your changes.
+4. Run the relevant tests.
+5. Submit a pull request describing your changes.
 
 ## License
 
-No license has been specified yet. Unless a license is added to this repository, reuse and redistribution remain subject to the applicable copyright rules.
+No license has been specified yet. Until a license is added, the project remains subject to the applicable copyright rules; do not assume it is open for unrestricted reuse or redistribution.
 
 ---
 
-<p align="center">
-  Built with Python and Django.
-</p>
+<div align="center">
+
+**Built with Python and Django.**
+
+</div>
