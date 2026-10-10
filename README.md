@@ -220,11 +220,58 @@ No production URL is listed until the deployment has been completed and verified
 - Keep independent backups of important data.
 - Do not store sensitive financial information in a temporary deployment database.
 
+## Application Screenshots
+
+Screenshots showcasing FinTrack's main features.
+
+### Dashboard Overview
+
+![Dashboard Overview](docs/screenshots/DASHBOARD.png)
+
+### Add Expense
+
+![Add Expense](docs/screenshots/ADD_EXPENSE.png)
+
+### Add Income
+
+![Add Income](docs/screenshots/ADD_INCOME.png)
+
+### All Transactions
+
+![All Transactions](docs/screenshots/ALL_TRANSACTIONS.png)
+
+### Create Budget
+
+![Create Budget](docs/screenshots/CREATE_BUDGET.png)
+
+### Edit Records
+
+![Edit Records](docs/screenshots/EDIT_PAGE.png)
+
+### Quick Actions
+
+![Quick Actions](docs/screenshots/QUICK ACTIONS.png)
+
+### Set Financial Goals
+
+![Set Financial Goals](docs/screenshots/SET_GOAL.png)
+
+### Tax Calculator
+
+![Tax Calculator](docs/screenshots/TAXATION.png)
+
+### Tax Calculation Details
+
+![Tax Calculation Details](docs/screenshots/TAXATION_2.png)
+
+### Financial Visualisations
+
+![Financial Visualisations](docs/screenshots/VISUALISATIONS.png)
+
 ## Roadmap
 
 - [ ] Deploy the application for demonstration.
 - [ ] Verify core workflows on the hosted version.
-- [ ] Add screenshots of the application.
 - [ ] Improve documentation and automated test coverage.
 - [ ] Evaluate persistent storage if the application needs durable hosted data.
 
