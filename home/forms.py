@@ -312,9 +312,24 @@ class BudgetForm(forms.ModelForm):
 
 # Modified Goal Form
 class GoalForm(forms.ModelForm):
+    current_amount = forms.DecimalField(
+        required=False,
+        min_value=0,
+        initial=0,
+        label="Current Savings",
+        decimal_places=2,
+        max_digits=10,
+    )
+
     class Meta:
         model = Goal
-        fields = ['description', 'target_amount', 'deadline', 'category']
+        fields = [
+            'description',
+            'target_amount',
+            'current_amount',
+            'deadline',
+            'category',
+        ]
         widgets = {
             'deadline': forms.DateInput(attrs={'type': 'date'}),
         }
@@ -322,19 +337,34 @@ class GoalForm(forms.ModelForm):
     category = forms.ModelChoiceField(
         queryset=Category.objects.none(),
         empty_label="Select Category",
-        label="Category"
+        label="Category",
     )
 
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
+
         if self.request:
-            self.fields['category'].queryset = Category.objects.filter(user=self.request.user, type__in=['goal', 'savings', 'investments']).order_by('name')
+            self.fields['category'].queryset = Category.objects.filter(
+                user=self.request.user,
+                type__in=['goal', 'savings', 'investments'],
+            ).order_by('name')
+
         for field_name, field in self.fields.items():
-            field.widget.attrs['class'] = 'form-input rounded-md shadow-sm border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50'
+            field.widget.attrs['class'] = (
+                'form-input rounded-md shadow-sm border-gray-300 '
+                'focus:border-indigo-300 focus:ring focus:ring-indigo-200 '
+                'focus:ring-opacity-50'
+            )
+
+    def clean_current_amount(self):
+        amount = self.cleaned_data.get('current_amount')
+        return amount if amount is not None else 0
 
     def clean_deadline(self):
         deadline = self.cleaned_data.get('deadline')
         if deadline and deadline < timezone.now().date():
-            raise forms.ValidationError("Deadline must be today or in the future.")
+            raise forms.ValidationError(
+                "Deadline must be today or in the future."
+            )
         return deadline

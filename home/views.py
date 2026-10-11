@@ -1221,21 +1221,42 @@ def home_view(request):
     total_expenses_overall = Transaction.objects.filter(user=request.user).aggregate(Sum('amount'))['amount__sum'] or Decimal('0.00')
     total_balance_overall = total_income_overall - total_expenses_overall
 
-    monthly_spending = Transaction.objects.filter(
-        user=request.user,
-        date__year=today.year,
-        date__month=today.month
-    ).aggregate(Sum('amount'))['amount__sum'] or Decimal('0.00')
-
-    total_budget_limit = Budget.objects.filter(
+    monthly_transactions = Transaction.objects.filter(
         user=request.user,
         date__year=today.year,
         date__month=today.month,
-    ).aggregate(
-        Sum('limit')
-    )['limit__sum'] or Decimal('0.00')
+    )
 
-    remaining_budget = total_budget_limit - monthly_spending
+    monthly_spending = (
+        monthly_transactions.aggregate(total=Sum('amount'))['total']
+        or Decimal('0.00')
+    )
+
+    # Only compare budgets linked to actual expense categories.
+    monthly_budgets = Budget.objects.filter(
+        user=request.user,
+        date__year=today.year,
+        date__month=today.month,
+        category__type='expense',
+    )
+
+    total_budget_limit = (
+        monthly_budgets.aggregate(total=Sum('limit'))['total']
+        or Decimal('0.00')
+    )
+
+    budgeted_category_ids = monthly_budgets.values_list(
+        'category_id', flat=True
+    )
+
+    spending_against_budgets = (
+        monthly_transactions.filter(
+            category_id__in=budgeted_category_ids
+        ).aggregate(total=Sum('amount'))['total']
+        or Decimal('0.00')
+    )
+
+    remaining_budget = total_budget_limit - spending_against_budgets
 
     # --- FIX FOR FieldError: Cannot resolve keyword 'type' into field ---
     # The 'type' field does not exist on the Transaction model.
@@ -2029,6 +2050,48 @@ def set_goal_view(request):
         form = GoalForm(request=request)
 
     goals = Goal.objects.filter(user=request.user).order_by('-id')
+
+    # Calculate savings progress and deadline-based savings suggestions.
+    today = timezone.localdate()
+
+    for goal in goals:
+        target = goal.target_amount or Decimal('0.00')
+        saved = goal.current_amount or Decimal('0.00')
+
+        goal.remaining_amount = max(target - saved, Decimal('0.00'))
+        goal.progress_percentage = (
+            min(round((saved / target) * 100), 100)
+            if target > 0 else 0
+        )
+
+        goal.days_remaining = None
+        goal.daily_savings = Decimal('0.00')
+        goal.weekly_savings = Decimal('0.00')
+        goal.monthly_savings = Decimal('0.00')
+
+        if goal.remaining_amount <= 0:
+            goal.deadline_status = 'completed'
+        elif not goal.deadline:
+            goal.deadline_status = 'no_deadline'
+        else:
+            goal.days_remaining = (goal.deadline - today).days
+
+            if goal.days_remaining < 0:
+                goal.deadline_status = 'overdue'
+            elif goal.days_remaining == 0:
+                goal.deadline_status = 'due_today'
+            else:
+                goal.deadline_status = 'upcoming'
+                days = Decimal(goal.days_remaining)
+                goal.daily_savings = (
+                    goal.remaining_amount / days
+                ).quantize(Decimal('0.01'))
+                goal.weekly_savings = (
+                    goal.remaining_amount * Decimal('7') / days
+                ).quantize(Decimal('0.01'))
+                goal.monthly_savings = (
+                    goal.remaining_amount * Decimal('30') / days
+                ).quantize(Decimal('0.01'))
 
     selected_category_id = request.GET.get('selected_category_id', '')
     filtered_goals_for_chart = goals

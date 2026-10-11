@@ -184,6 +184,21 @@
                 </div>
 
 
+                <!-- CURRENT SAVINGS -->
+                <div class="ft-form-field">
+                    <label for="current_amount">Current Savings</label>
+                    <input
+                        type="number"
+                        id="current_amount"
+                        name="current_amount"
+                        placeholder="0.00"
+                        step="0.01"
+                        min="0"
+                        value="0.00"
+                    >
+                    <small>Enter how much you have already saved.</small>
+                </div>
+
                 <!-- =================================================
                      DEADLINE
                      ================================================= -->
@@ -401,7 +416,7 @@
                                 </th>
 
                                 <th>
-                                    Target Amount
+                                    Savings Progress
                                 </th>
 
                                 <th>
@@ -457,17 +472,90 @@
                                     </td>
 
 
-                                    <!-- Target Amount -->
+                                    <!-- Savings Progress -->
 
                                     <td>
+                                        <div style="min-width:180px;">
+                                            <div style="display:flex;justify-content:space-between;gap:12px;margin-bottom:6px;">
+                                                <strong class="ft-goal-amount">
+                                                    ₹{{ goal.current_amount|floatformat:2 }}
+                                                </strong>
+                                                <span style="font-size:12px;color:#64748b;">
+                                                    of ₹{{ goal.target_amount|floatformat:2 }}
+                                                </span>
+                                            </div>
 
-                                        <strong class="ft-goal-amount">
+                                            <div style="height:8px;background:#e2e8f0;border-radius:999px;overflow:hidden;">
+                                                <div
+                                                    style="height:100%;width:{{ goal.progress_percentage }}%;background:#4f46e5;border-radius:999px;"
+                                                    role="progressbar"
+                                                    aria-valuenow="{{ goal.progress_percentage }}"
+                                                    aria-valuemin="0"
+                                                    aria-valuemax="100"
+                                                ></div>
+                                            </div>
 
-                                            ₹{{ goal.target_amount }}
+                                            <div style="font-size:12px;color:#64748b;margin-top:6px;">
+                                                {{ goal.progress_percentage }}% complete
+                                            </div>
 
-                                        </strong>
+                                            <div style="font-size:12px;color:#64748b;margin-top:4px;">
+                                                Remaining: ₹{{ goal.remaining_amount|floatformat:2 }}
+                                            </div>
 
-                                    </td>
+                                        </div>
+
+
+                                                                                <div
+                                            id="goal-plan-{{ goal.id }}"
+                                            hidden
+                                            style="margin-top:10px;padding:12px;border:1px solid rgba(148,163,184,0.3);border-radius:10px;background:rgba(15,23,42,0.45);min-width:190px;"
+                                        >
+                                            <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px;">
+                                                <strong style="font-size:12px;color:#93c5fd;">Savings Plan</strong>
+                                                <button
+                                                    type="button"
+                                                    class="ft-icon-action"
+                                                    title="Close savings plan"
+                                                    aria-label="Close savings plan"
+                                                    onclick="toggleGoalPlan({{ goal.id }}, this, true)"
+                                                    style="width:26px;height:26px;"
+                                                >
+                                                    <i class="fa-solid fa-xmark"></i>
+                                                </button>
+                                            </div>
+
+                                            {% if goal.deadline_status == 'completed' %}
+                                                <div style="font-size:12px;color:#86efac;">Goal completed!</div>
+                                            {% elif goal.deadline_status == 'no_deadline' %}
+                                                <div style="font-size:12px;color:#cbd5e1;">Set a deadline to get a savings plan.</div>
+                                            {% elif goal.deadline_status == 'overdue' %}
+                                                <div style="font-size:12px;color:#fca5a5;">Deadline passed. Update it to plan future savings.</div>
+                                            {% elif goal.deadline_status == 'due_today' %}
+                                                <div style="font-size:12px;color:#fcd34d;">Deadline is today.</div>
+                                                <div style="font-size:12px;margin-top:6px;">Remaining: <strong>₹{{ goal.remaining_amount|floatformat:2 }}</strong></div>
+                                            {% else %}
+                                                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:12px;">
+                                                    <div>
+                                                        <div style="color:#94a3b8;">Daily</div>
+                                                        <strong>₹{{ goal.daily_savings|floatformat:2 }}</strong>
+                                                    </div>
+                                                    <div>
+                                                        <div style="color:#94a3b8;">Weekly</div>
+                                                        <strong>₹{{ goal.weekly_savings|floatformat:2 }}</strong>
+                                                    </div>
+                                                    <div>
+                                                        <div style="color:#94a3b8;">Monthly</div>
+                                                        <strong>₹{{ goal.monthly_savings|floatformat:2 }}</strong>
+                                                    </div>
+                                                    <div>
+                                                        <div style="color:#94a3b8;">Time remaining</div>
+                                                        <strong>{{ goal.days_remaining }} day{{ goal.days_remaining|pluralize }}</strong>
+                                                    </div>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+</td>
 
 
                                     <!-- Deadline -->
@@ -485,6 +573,19 @@
 
                                         <div class="ft-row-actions">
 
+
+                                            <!-- VIEW SAVINGS PLAN -->
+                                            <button
+                                                type="button"
+                                                class="ft-icon-action ft-edit-action"
+                                                title="View savings plan"
+                                                aria-label="View savings plan"
+                                                aria-expanded="false"
+                                                aria-controls="goal-plan-{{ goal.id }}"
+                                                onclick="toggleGoalPlan({{ goal.id }}, this)"
+                                            >
+                                                <i class="fa-solid fa-eye"></i>
+                                            </button>
 
                                             <!-- EDIT -->
 
@@ -525,6 +626,8 @@
                                             </form>
 
                                         </div>
+
+
 
                                     </td>
 
@@ -1806,6 +1909,32 @@
 
 
 {% block extra_body_js %}
+
+<script>
+function toggleGoalPlan(goalId, button, forceClose = false) {
+    const panel = document.getElementById(`goal-plan-${goalId}`);
+    if (!panel) return;
+
+    const shouldOpen = forceClose ? false : panel.hidden;
+
+    // Close other open goal plans so the table stays compact.
+    document.querySelectorAll('[id^="goal-plan-"]').forEach((item) => {
+        item.hidden = true;
+    });
+    document.querySelectorAll('[aria-controls^="goal-plan-"]').forEach((item) => {
+        item.setAttribute('aria-expanded', 'false');
+    });
+
+    panel.hidden = !shouldOpen;
+
+    const toggleButton = document.querySelector(
+        `[aria-controls="goal-plan-${goalId}"]`
+    );
+    if (toggleButton) {
+        toggleButton.setAttribute('aria-expanded', String(shouldOpen));
+    }
+}
+</script>
 
 <script>
 

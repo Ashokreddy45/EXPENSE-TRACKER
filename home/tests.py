@@ -4,6 +4,9 @@ import json
 from dateutil.relativedelta import relativedelta
 
 from django.test import TestCase
+from django.core import mail
+from django.core.management import call_command
+from django.test.utils import override_settings
 from django.urls import reverse
 from django.utils import timezone
 
@@ -14,6 +17,7 @@ from .models import (
     Income,
     Budget,
     Goal,
+    GoalReminder,
     Profile,
 )
 
@@ -359,7 +363,7 @@ class ViewPageTests(TestCase):
             response.context["selected_type"],
             "budget",
         )
-    
+
     def test_profile_page_loads(self):
         response = self.client.get(reverse("view_profile"))
         self.assertEqual(response.status_code, 200)
@@ -1172,3 +1176,99 @@ class PasswordResetTests(TestCase):
         self.profile.refresh_from_db()
         self.assertTrue(self.profile.reset_code)
         self.assertIsNotNone(self.profile.reset_code_created_at)
+
+
+@override_settings(
+    EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
+    EMAIL_HOST_USER="sender@example.com",
+    EMAIL_HOST_PASSWORD="test-password",
+    DEFAULT_FROM_EMAIL="sender@example.com",
+)
+class GoalReminderCommandTests(TestCase):
+    def setUp(self):
+        self.user = CustomUser.objects.create_user(
+            username="reminderuser",
+            email="reminder@example.com",
+            password="TestPassword123",
+        )
+        self.category = Category.objects.create(
+            user=self.user,
+            name="Savings",
+            type="goal",
+        )
+        self.today = timezone.localdate()
+
+    def create_goal(self, days_until_deadline, current_amount="0.00"):
+        return Goal.objects.create(
+            user=self.user,
+            description="Emergency Fund",
+            target_amount=Decimal("10000.00"),
+            current_amount=Decimal(current_amount),
+            deadline=self.today + timezone.timedelta(
+                days=days_until_deadline
+            ),
+            category=self.category,
+        )
+
+    def test_sends_seven_day_reminder(self):
+        goal = self.create_goal(7)
+
+        call_command("send_goal_reminders")
+
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertIn("reminder@example.com", mail.outbox[0].to)
+        self.assertTrue(
+            GoalReminder.objects.filter(
+                goal=goal,
+                reminder_type="7_day",
+            ).exists()
+        )
+
+    def test_sends_one_day_reminder(self):
+        goal = self.create_goal(1)
+
+        call_command("send_goal_reminders")
+
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertTrue(
+            GoalReminder.objects.filter(
+                goal=goal,
+                reminder_type="1_day",
+            ).exists()
+        )
+
+    def test_completed_goal_is_skipped(self):
+        self.create_goal(7, current_amount="10000.00")
+
+        call_command("send_goal_reminders")
+
+        self.assertEqual(len(mail.outbox), 0)
+        self.assertEqual(GoalReminder.objects.count(), 0)
+
+    def test_duplicate_reminder_is_not_sent(self):
+        goal = self.create_goal(7)
+        GoalReminder.objects.create(
+            goal=goal,
+            reminder_type="7_day",
+        )
+
+        call_command("send_goal_reminders")
+
+        self.assertEqual(len(mail.outbox), 0)
+        self.assertEqual(GoalReminder.objects.count(), 1)
+
+    def test_dry_run_does_not_send_or_record(self):
+        self.create_goal(7)
+
+        call_command("send_goal_reminders", "--dry-run")
+
+        self.assertEqual(len(mail.outbox), 0)
+        self.assertEqual(GoalReminder.objects.count(), 0)
+
+    def test_goal_outside_reminder_window_is_skipped(self):
+        self.create_goal(3)
+
+        call_command("send_goal_reminders")
+
+        self.assertEqual(len(mail.outbox), 0)
+        self.assertEqual(GoalReminder.objects.count(), 0)

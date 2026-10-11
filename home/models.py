@@ -116,6 +116,35 @@ class Goal(models.Model):
     def __str__(self):
         return self.description
 
+class GoalReminder(models.Model):
+    REMINDER_TYPES = [
+        ('7_day', '7 days before deadline'),
+        ('1_day', '1 day before deadline'),
+    ]
+
+    goal = models.ForeignKey(
+        Goal,
+        on_delete=models.CASCADE,
+        related_name='reminders',
+    )
+    reminder_type = models.CharField(
+        max_length=10,
+        choices=REMINDER_TYPES,
+    )
+    sent_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['goal', 'reminder_type'],
+                name='unique_goal_reminder_type',
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.goal.description} - {self.reminder_type}"
+
+
 # Profile model
 class Profile(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
