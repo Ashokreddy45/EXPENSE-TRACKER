@@ -117,7 +117,9 @@ else:
             "HOST": os.getenv("DB_HOST", "localhost"),
             "PORT": os.getenv("DB_PORT", "3306"),
             "OPTIONS": {
-                "ssl": {},
+                "ssl_ca": "/etc/ssl/certs/ca-certificates.crt",
+                "ssl_verify_cert": True,
+                "ssl_verify_identity": True,
             },
         }
     }
