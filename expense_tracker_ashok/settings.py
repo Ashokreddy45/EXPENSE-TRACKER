@@ -276,5 +276,10 @@ LOGGING = {
             "level": "ERROR",
             "propagate": True,
         },
+        "django.request": {
+            "handlers": ["console"],
+            "level": "ERROR",
+            "propagate": False,
+        },
     },
 }
